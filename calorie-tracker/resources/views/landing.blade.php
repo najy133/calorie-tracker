@@ -183,149 +183,85 @@
                 <p class="text-zinc-500 text-sm">Hover any layer — the rest gets out of the way</p>
             </div>
 
-            <div x-data="{
-                    active: null,
-                    order: ['bun-top','bacon','lettuce-top','tomato','cheese','patty','bun-bottom'],
-                    above(l){ return this.active && this.order.indexOf(l) < this.order.indexOf(this.active) },
-                    below(l){ return this.active && this.order.indexOf(l) > this.order.indexOf(this.active) }
-                 }"
+            <div x-data="{ active: null }"
                  @mouseleave="active = null"
                  class="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-20">
 
-                {{-- Burger layers --}}
-                <div class="flex flex-col items-center gap-[3px] select-none">
+                {{-- Burger photo with spotlight --}}
+                <div class="relative w-72 h-72 shrink-0 rounded-2xl overflow-hidden cursor-pointer select-none">
 
-                    {{-- Top bun --}}
-                    <div @mouseenter="active='bun-top'" @click="active = active==='bun-top' ? null : 'bun-top'"
-                         :class="{
-                             '-translate-y-16 opacity-0 pointer-events-none': above('bun-top'),
-                             'translate-y-16 opacity-0 pointer-events-none': below('bun-top'),
-                             'scale-105 -translate-y-2 brightness-110': active==='bun-top'
-                         }"
-                         class="relative w-48 h-14 cursor-pointer transition-all duration-300 ease-out"
-                         title="Top bun">
-                        <div class="w-full h-full bg-amber-400 rounded-t-[100%] rounded-b-md shadow-md"></div>
-                        {{-- sesame seeds --}}
-                        <span class="absolute top-3 left-10 w-2 h-1 bg-amber-200 rounded-full rotate-12 opacity-80"></span>
-                        <span class="absolute top-2 left-[4.5rem] w-2 h-1 bg-amber-200 rounded-full -rotate-6 opacity-80"></span>
-                        <span class="absolute top-3 right-10 w-2 h-1 bg-amber-200 rounded-full rotate-6 opacity-80"></span>
-                        <span class="absolute top-4 right-[4.5rem] w-2 h-1 bg-amber-200 rounded-full -rotate-12 opacity-80"></span>
-                        <span class="absolute top-2 left-1/2 -translate-x-1/2 w-2 h-1 bg-amber-200 rounded-full opacity-80"></span>
-                    </div>
+                    {{-- Base image — darkens when a layer is active --}}
+                    <img src="/img/burger.jpg" alt="Burger"
+                         :class="active ? 'brightness-[0.15]' : 'brightness-100'"
+                         class="absolute inset-0 w-full h-full object-cover transition-all duration-300">
 
-                    {{-- Bacon --}}
-                    <div @mouseenter="active='bacon'" @click="active = active==='bacon' ? null : 'bacon'"
-                         :class="{
-                             '-translate-y-16 opacity-0 pointer-events-none': above('bacon'),
-                             'translate-y-16 opacity-0 pointer-events-none': below('bacon'),
-                             'scale-105 -translate-y-1 brightness-110': active==='bacon'
-                         }"
-                         class="w-44 cursor-pointer transition-all duration-300 ease-out"
-                         title="Bacon">
-                        <div class="w-full h-3 bg-orange-800 rounded-sm"
-                             style="clip-path: polygon(0% 0%, 8% 100%, 16% 20%, 24% 100%, 32% 0%, 40% 100%, 48% 20%, 56% 100%, 64% 0%, 72% 100%, 80% 20%, 88% 100%, 100% 0%, 100% 100%, 0% 100%)"></div>
-                    </div>
+                    {{-- Spotlight: one clipped copy per layer --}}
+                    @foreach([
+                        'bun-top'    => 'inset(2% 8% 58% 8% round 12px)',
+                        'bacon'      => 'inset(38% 10% 48% 10%)',
+                        'lettuce'    => 'inset(44% 4% 40% 4%)',
+                        'tomato'     => 'inset(53% 10% 34% 10%)',
+                        'cheese'     => 'inset(59% 10% 30% 10%)',
+                        'patty'      => 'inset(62% 8% 22% 8%)',
+                        'bun-bottom' => 'inset(73% 8% 3% 8% round 12px)',
+                    ] as $key => $clip)
+                        <div :class="active === '{{ $key }}' ? 'opacity-100' : 'opacity-0'"
+                             class="absolute inset-0 pointer-events-none transition-opacity duration-300 overflow-hidden"
+                             style="clip-path: {{ $clip }}">
+                            <img src="/img/burger.jpg" alt="" class="w-full h-full object-cover">
+                        </div>
+                    @endforeach
 
-                    {{-- Lettuce --}}
-                    <div @mouseenter="active='lettuce-top'" @click="active = active==='lettuce-top' ? null : 'lettuce-top'"
-                         :class="{
-                             '-translate-y-16 opacity-0 pointer-events-none': above('lettuce-top'),
-                             'translate-y-16 opacity-0 pointer-events-none': below('lettuce-top'),
-                             'scale-105 brightness-110': active==='lettuce-top'
-                         }"
-                         class="w-56 cursor-pointer transition-all duration-300 ease-out"
-                         title="Lettuce">
-                        <div class="w-full h-5 bg-green-500 rounded-sm"
-                             style="clip-path: polygon(0% 60%, 3% 0%, 7% 80%, 11% 10%, 15% 70%, 19% 0%, 23% 75%, 27% 5%, 31% 65%, 35% 0%, 39% 80%, 43% 10%, 47% 70%, 51% 0%, 55% 75%, 59% 5%, 63% 65%, 67% 0%, 71% 80%, 75% 10%, 79% 70%, 83% 0%, 87% 75%, 91% 5%, 95% 65%, 100% 20%, 100% 100%, 0% 100%)"></div>
-                    </div>
-
-                    {{-- Tomato --}}
-                    <div @mouseenter="active='tomato'" @click="active = active==='tomato' ? null : 'tomato'"
-                         :class="{
-                             '-translate-y-16 opacity-0 pointer-events-none': above('tomato'),
-                             'translate-y-16 opacity-0 pointer-events-none': below('tomato'),
-                             'scale-105 brightness-110': active==='tomato'
-                         }"
-                         class="w-44 cursor-pointer transition-all duration-300 ease-out"
-                         title="Tomato">
-                        <div class="w-full h-4 bg-red-500 rounded-full shadow-sm"></div>
-                    </div>
-
-                    {{-- Cheese --}}
-                    <div @mouseenter="active='cheese'" @click="active = active==='cheese' ? null : 'cheese'"
-                         :class="{
-                             '-translate-y-16 opacity-0 pointer-events-none': above('cheese'),
-                             'translate-y-16 opacity-0 pointer-events-none': below('cheese'),
-                             'scale-105 brightness-110': active==='cheese'
-                         }"
-                         class="w-48 cursor-pointer transition-all duration-300 ease-out"
-                         title="Cheese">
-                        <div class="w-full h-2.5 bg-yellow-400 rounded-sm shadow-sm"></div>
-                    </div>
-
-                    {{-- Patty --}}
-                    <div @mouseenter="active='patty'" @click="active = active==='patty' ? null : 'patty'"
-                         :class="{
-                             '-translate-y-16 opacity-0 pointer-events-none': above('patty'),
-                             'translate-y-16 opacity-0 pointer-events-none': below('patty'),
-                             'scale-105 translate-y-1 brightness-110': active==='patty'
-                         }"
-                         class="w-44 cursor-pointer transition-all duration-300 ease-out"
-                         title="Beef patty">
-                        <div class="w-full h-8 bg-stone-800 rounded-md shadow-md"></div>
-                    </div>
-
-                    {{-- Bottom bun --}}
-                    <div @mouseenter="active='bun-bottom'" @click="active = active==='bun-bottom' ? null : 'bun-bottom'"
-                         :class="{
-                             '-translate-y-16 opacity-0 pointer-events-none': above('bun-bottom'),
-                             'translate-y-16 opacity-0 pointer-events-none': below('bun-bottom'),
-                             'scale-105 translate-y-2 brightness-110': active==='bun-bottom'
-                         }"
-                         class="w-48 cursor-pointer transition-all duration-300 ease-out"
-                         title="Bottom bun">
-                        <div class="w-full h-7 bg-amber-300 rounded-b-[60%] rounded-t-sm shadow-md"></div>
+                    {{-- Invisible hotspot strips --}}
+                    <div class="absolute inset-0">
+                        <div class="absolute left-0 right-0" style="top:0;height:38%"        @mouseenter="active='bun-top'"    @click="active=active==='bun-top'?null:'bun-top'"></div>
+                        <div class="absolute left-0 right-0" style="top:38%;height:8%"       @mouseenter="active='bacon'"      @click="active=active==='bacon'?null:'bacon'"></div>
+                        <div class="absolute left-0 right-0" style="top:46%;height:8%"       @mouseenter="active='lettuce'"    @click="active=active==='lettuce'?null:'lettuce'"></div>
+                        <div class="absolute left-0 right-0" style="top:54%;height:8%"       @mouseenter="active='tomato'"     @click="active=active==='tomato'?null:'tomato'"></div>
+                        <div class="absolute left-0 right-0" style="top:62%;height:5%"       @mouseenter="active='cheese'"     @click="active=active==='cheese'?null:'cheese'"></div>
+                        <div class="absolute left-0 right-0" style="top:67%;height:10%"      @mouseenter="active='patty'"      @click="active=active==='patty'?null:'patty'"></div>
+                        <div class="absolute left-0 right-0" style="top:77%;height:23%"      @mouseenter="active='bun-bottom'" @click="active=active==='bun-bottom'?null:'bun-bottom'"></div>
                     </div>
 
                 </div>
 
                 {{-- Macro info panel --}}
-                <div class="w-52 min-h-40 flex items-center">
+                <div class="w-52 min-h-44 flex items-center">
 
                     <div x-show="!active" class="text-zinc-600 text-sm text-center w-full">
                         <p>← hover a layer</p>
                     </div>
 
                     @foreach([
-                        'bun-top'     => ['name' => 'Top Bun',     'color' => 'bg-amber-400',  'cal' => 130, 'protein' => '4g',   'carbs' => '25g', 'fat' => '2g'],
-                        'bacon'       => ['name' => 'Bacon',       'color' => 'bg-orange-700', 'cal' => 90,  'protein' => '6g',   'carbs' => '0g',  'fat' => '7g'],
-                        'lettuce-top' => ['name' => 'Lettuce',     'color' => 'bg-green-500',  'cal' => 5,   'protein' => '0.5g', 'carbs' => '1g',  'fat' => '0g'],
-                        'tomato'      => ['name' => 'Tomato',      'color' => 'bg-red-500',    'cal' => 15,  'protein' => '0.7g', 'carbs' => '3g',  'fat' => '0g'],
-                        'cheese'      => ['name' => 'Cheddar',     'color' => 'bg-yellow-400', 'cal' => 70,  'protein' => '4g',   'carbs' => '0.5g','fat' => '6g'],
-                        'patty'       => ['name' => 'Beef Patty',  'color' => 'bg-stone-700',  'cal' => 250, 'protein' => '22g',  'carbs' => '0g',  'fat' => '17g'],
-                        'bun-bottom'  => ['name' => 'Bottom Bun',  'color' => 'bg-amber-300',  'cal' => 115, 'protein' => '3g',   'carbs' => '22g', 'fat' => '2g'],
+                        'bun-top'    => ['name' => 'Top Bun',    'color' => 'bg-amber-400',  'cal' => 130, 'protein' => '4g',   'carbs' => '25g',  'fat' => '2g'],
+                        'bacon'      => ['name' => 'Bacon',      'color' => 'bg-orange-700', 'cal' => 90,  'protein' => '6g',   'carbs' => '0g',   'fat' => '7g'],
+                        'lettuce'    => ['name' => 'Lettuce',    'color' => 'bg-green-500',  'cal' => 5,   'protein' => '0.5g', 'carbs' => '1g',   'fat' => '0g'],
+                        'tomato'     => ['name' => 'Tomato',     'color' => 'bg-red-500',    'cal' => 15,  'protein' => '0.7g', 'carbs' => '3g',   'fat' => '0g'],
+                        'cheese'     => ['name' => 'Cheddar',    'color' => 'bg-yellow-400', 'cal' => 70,  'protein' => '4g',   'carbs' => '0.5g', 'fat' => '6g'],
+                        'patty'      => ['name' => 'Beef Patty', 'color' => 'bg-stone-600',  'cal' => 250, 'protein' => '22g',  'carbs' => '0g',   'fat' => '17g'],
+                        'bun-bottom' => ['name' => 'Bottom Bun', 'color' => 'bg-amber-300',  'cal' => 115, 'protein' => '3g',   'carbs' => '22g',  'fat' => '2g'],
                     ] as $key => $layer)
                         <div x-show="active === '{{ $key }}'" x-cloak class="w-full">
-                            <div class="flex items-center gap-2 mb-4">
-                                <span class="w-2.5 h-2.5 rounded-full {{ $layer['color'] }}"></span>
+                            <div class="flex items-center gap-2 mb-5">
+                                <span class="w-2.5 h-2.5 rounded-full {{ $layer['color'] }} shrink-0"></span>
                                 <p class="text-white font-semibold text-sm">{{ $layer['name'] }}</p>
                             </div>
-                            <div class="space-y-2.5">
-                                <div class="flex justify-between">
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
                                     <span class="text-zinc-500 text-xs">Calories</span>
-                                    <span class="font-mono text-white text-xs font-medium">{{ $layer['cal'] }}</span>
+                                    <span class="font-mono text-white text-sm font-semibold">{{ $layer['cal'] }}</span>
                                 </div>
-                                <div class="flex justify-between">
+                                <div class="flex justify-between items-center">
                                     <span class="text-indigo-400 text-xs">Protein</span>
-                                    <span class="font-mono text-white text-xs font-medium">{{ $layer['protein'] }}</span>
+                                    <span class="font-mono text-white text-sm font-semibold">{{ $layer['protein'] }}</span>
                                 </div>
-                                <div class="flex justify-between">
+                                <div class="flex justify-between items-center">
                                     <span class="text-amber-400 text-xs">Carbs</span>
-                                    <span class="font-mono text-white text-xs font-medium">{{ $layer['carbs'] }}</span>
+                                    <span class="font-mono text-white text-sm font-semibold">{{ $layer['carbs'] }}</span>
                                 </div>
-                                <div class="flex justify-between">
+                                <div class="flex justify-between items-center">
                                     <span class="text-rose-400 text-xs">Fat</span>
-                                    <span class="font-mono text-white text-xs font-medium">{{ $layer['fat'] }}</span>
+                                    <span class="font-mono text-white text-sm font-semibold">{{ $layer['fat'] }}</span>
                                 </div>
                             </div>
                         </div>
