@@ -103,31 +103,75 @@
                         {{-- Entries --}}
                         <ul class="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden">
                             @foreach($entries as $entry)
-                                <li wire:key="{{ $entry->id }}" class="flex items-center justify-between px-4 py-3 bg-white group">
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-medium text-gray-800 truncate">{{ $entry->food }}</p>
-                                        <p class="text-xs text-gray-400 mt-0.5">
-                                            {{ $entry->created_at->format('g:i A') }}
-                                            @if($entry->protein || $entry->carbs || $entry->fat)
-                                                &nbsp;·&nbsp; P: {{ $entry->protein }}g &nbsp;C: {{ $entry->carbs }}g &nbsp;F: {{ $entry->fat }}g
-                                            @endif
-                                        </p>
-                                    </div>
-                                    <div class="flex items-center gap-3 ml-4 shrink-0">
-                                        <span class="text-sm font-semibold text-indigo-700">
-                                            {{ number_format($entry->calories) }} kcal
-                                        </span>
-                                        <button
-                                            wire:click="delete({{ $entry->id }})"
-                                            wire:confirm="Remove this entry?"
-                                            wire:loading.attr="disabled"
-                                            wire:target="delete({{ $entry->id }})"
-                                            class="text-xs text-gray-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
-                                            title="Remove entry"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
+                                <li wire:key="{{ $entry->id }}" class="px-4 py-3 bg-white">
+                                    @if($editingId === $entry->id)
+                                        {{-- Inline edit form --}}
+                                        <div class="space-y-2">
+                                            <input wire:model="editFood" type="text"
+                                                   class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/40 focus:outline-none"
+                                                   placeholder="Food description" />
+                                            <div class="flex gap-2 flex-wrap">
+                                                <div class="flex items-center gap-1">
+                                                    <label class="text-xs text-gray-500">kcal</label>
+                                                    <input wire:model="editCalories" type="number" min="1"
+                                                           class="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-indigo-400 focus:outline-none" />
+                                                </div>
+                                                <div class="flex items-center gap-1">
+                                                    <label class="text-xs text-gray-500">P</label>
+                                                    <input wire:model="editProtein" type="number" min="0"
+                                                           class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-indigo-400 focus:outline-none" />
+                                                    <span class="text-xs text-gray-400">g</span>
+                                                </div>
+                                                <div class="flex items-center gap-1">
+                                                    <label class="text-xs text-gray-500">C</label>
+                                                    <input wire:model="editCarbs" type="number" min="0"
+                                                           class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-indigo-400 focus:outline-none" />
+                                                    <span class="text-xs text-gray-400">g</span>
+                                                </div>
+                                                <div class="flex items-center gap-1">
+                                                    <label class="text-xs text-gray-500">F</label>
+                                                    <input wire:model="editFat" type="number" min="0"
+                                                           class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-indigo-400 focus:outline-none" />
+                                                    <span class="text-xs text-gray-400">g</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <button wire:click="saveEdit"
+                                                        class="px-3 py-1 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:opacity-90 transition">
+                                                    Save
+                                                </button>
+                                                <button wire:click="cancelEdit"
+                                                        class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200 transition">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @else
+                                        {{-- Normal row --}}
+                                        <div class="flex items-center justify-between group">
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-800 truncate">{{ $entry->food }}</p>
+                                                <p class="text-xs text-gray-400 mt-0.5">
+                                                    {{ $entry->created_at->format('g:i A') }}
+                                                    @if($entry->protein || $entry->carbs || $entry->fat)
+                                                        &nbsp;·&nbsp; P: {{ $entry->protein }}g &nbsp;C: {{ $entry->carbs }}g &nbsp;F: {{ $entry->fat }}g
+                                                    @endif
+                                                </p>
+                                            </div>
+                                            <div class="flex items-center gap-3 ml-4 shrink-0">
+                                                <span class="text-sm font-semibold text-indigo-700">
+                                                    {{ number_format($entry->calories) }} kcal
+                                                </span>
+                                                <button wire:click="startEdit({{ $entry->id }})"
+                                                        class="text-xs text-gray-300 hover:text-indigo-500 transition opacity-0 group-hover:opacity-100"
+                                                        title="Edit entry">✎</button>
+                                                <button wire:click="delete({{ $entry->id }})"
+                                                        wire:confirm="Remove this entry?"
+                                                        class="text-xs text-gray-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
+                                                        title="Remove entry">✕</button>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </li>
                             @endforeach
                         </ul>

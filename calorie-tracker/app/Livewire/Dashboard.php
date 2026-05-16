@@ -10,10 +10,56 @@ class Dashboard extends Component
     public int $dailyGoal;
     public int $streak;
 
+    public ?int $editingId = null;
+    public string $editFood = '';
+    public int $editCalories = 0;
+    public int $editProtein = 0;
+    public int $editCarbs = 0;
+    public int $editFat = 0;
+
     public function mount(): void
     {
         $this->dailyGoal = auth()->user()->daily_goal ?? 2000;
         $this->streak    = $this->calculateStreak();
+    }
+
+    public function startEdit(int $id): void
+    {
+        $entry = Entry::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $this->editingId    = $id;
+        $this->editFood     = $entry->food;
+        $this->editCalories = $entry->calories;
+        $this->editProtein  = $entry->protein;
+        $this->editCarbs    = $entry->carbs;
+        $this->editFat      = $entry->fat;
+    }
+
+    public function saveEdit(): void
+    {
+        if (!$this->editingId || blank($this->editFood) || $this->editCalories <= 0) return;
+
+        Entry::where('id', $this->editingId)
+            ->where('user_id', auth()->id())
+            ->update([
+                'food'     => $this->editFood,
+                'calories' => $this->editCalories,
+                'protein'  => $this->editProtein,
+                'carbs'    => $this->editCarbs,
+                'fat'      => $this->editFat,
+            ]);
+
+        $this->cancelEdit();
+    }
+
+    public function cancelEdit(): void
+    {
+        $this->editingId    = null;
+        $this->editFood     = '';
+        $this->editCalories = 0;
+        $this->editProtein  = 0;
+        $this->editCarbs    = 0;
+        $this->editFat      = 0;
     }
 
     public function delete(int $id): void

@@ -21,6 +21,13 @@ class Homepage extends Component
     public int $dailyGoal = 2000;
     public ?string $explanation = null;
 
+    public ?int $editingId = null;
+    public string $editFood = '';
+    public int $editCalories = 0;
+    public int $editProtein = 0;
+    public int $editCarbs = 0;
+    public int $editFat = 0;
+
     public function mount(): void
     {
         $this->dailyGoal     = auth()->check() ? (auth()->user()->daily_goal ?? 2000) : 2000;
@@ -74,6 +81,46 @@ class Homepage extends Component
 
         $this->todayCalories = $this->queryTodayCalories();
         $this->reset('food', 'calories', 'protein', 'carbs', 'fat', 'explanation');
+    }
+
+    public function startEdit(int $id): void
+    {
+        $entry = Entry::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $this->editingId      = $id;
+        $this->editFood       = $entry->food;
+        $this->editCalories   = $entry->calories;
+        $this->editProtein    = $entry->protein;
+        $this->editCarbs      = $entry->carbs;
+        $this->editFat        = $entry->fat;
+    }
+
+    public function saveEdit(): void
+    {
+        if (!$this->editingId || blank($this->editFood) || $this->editCalories <= 0) return;
+
+        Entry::where('id', $this->editingId)
+            ->where('user_id', auth()->id())
+            ->update([
+                'food'     => $this->editFood,
+                'calories' => $this->editCalories,
+                'protein'  => $this->editProtein,
+                'carbs'    => $this->editCarbs,
+                'fat'      => $this->editFat,
+            ]);
+
+        $this->todayCalories = $this->queryTodayCalories();
+        $this->cancelEdit();
+    }
+
+    public function cancelEdit(): void
+    {
+        $this->editingId    = null;
+        $this->editFood     = '';
+        $this->editCalories = 0;
+        $this->editProtein  = 0;
+        $this->editCarbs    = 0;
+        $this->editFat      = 0;
     }
 
     public function delete(int $id): void
