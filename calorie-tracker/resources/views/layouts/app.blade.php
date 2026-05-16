@@ -7,13 +7,22 @@
 
         <title>{{ config('app.name', 'Calorie Tracker') }}</title>
 
+        <script>
+            (function(){
+                var t=localStorage.getItem('theme');
+                if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
+                    document.documentElement.classList.add('dark');
+                }
+            })();
+        </script>
+
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600&family=instrument-serif:400&family=dm-mono:400,500&display=swap" rel="stylesheet" />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="font-sans antialiased min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50 to-white">
+    <body class="font-sans antialiased min-h-screen bg-gradient-to-b from-green-50 via-zinc-50 to-white dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-950 text-zinc-900 dark:text-zinc-50 transition-colors duration-200">
         @include('layouts.navigation')
 
         <main>
