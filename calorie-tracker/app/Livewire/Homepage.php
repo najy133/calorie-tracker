@@ -3,50 +3,42 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Prism\Prism\Facades\Prism;
-use Prism\Prism\Enums\Provider;
+use Livewire\Attributes\Rule;
 use App\Models\Entry;
+use App\Services\CalorieEstimator;
 
 class Homepage extends Component
 {
+    #[Rule('required|string|min:2|max:500')]
+    public string $food = '';
 
-    public $calories =0;
-    public $food;
+    public int $calories = 0;
+    public int $todayCalories = 0;
+    public int $dailyGoal = 2000;
+    public ?string $explanation = null;
+    public \Illuminate\Support\Collection $todayEntries;
 
-    public function render() 
+    public function mount(): void
     {
-        return view('livewire.homepage')
-         ->layout('layouts.app');  
+        $this->refreshTotals();
     }
 
-
-    public function mount(){
-
-    }
-
-    public function estimate()
+    public function estimate(): void
     {
-        if (blank($this->food)) return;
+        $this->validate();
 
-        $response = Prism::text()
-        ->using(Provider::OpenAI, 'gpt-3.5-turbo')
-        ->withPrompt("
-        You are a calorie estimation engine.
-        
-        Rules:
-        - Return ONLY an integer.
-        - If quantity is missing, assume a standard serving.
-        - If input is not food, return 0.
-        
-        Input: {$this->food}
-        ")
-        ->asText()
-        ->text;
-
-        $this->calories = max(0, (int) trim($response));
+        try {
+            $result = app(CalorieEstimator::class)->estimate($this->food);
+            $this->calories = $result['calories'];
+            $this->explanation = $result['explanation'];
+        } catch (\Throwable $e) {
+            $this->addError('food', 'Could not estimate calories. Please try again.');
+            \Log::error('CalorieEstimator failed', ['error' => $e->getMessage(), 'food' => $this->food]);
+        }
     }
 
-    public function save(){
+    public function save(): void
+    {
         if ($this->calories <= 0 || blank($this->food)) return;
 
         Entry::create([
@@ -54,6 +46,26 @@ class Homepage extends Component
             'calories' => $this->calories,
         ]);
 
-        $this->reset('food', 'calories');
+        $this->refreshTotals();
+        $this->reset('food', 'calories', 'explanation');
+    }
+
+    public function delete(int $id): void
+    {
+        Entry::where('id', $id)->delete();
+        $this->refreshTotals();
+    }
+
+    private function refreshTotals(): void
+    {
+        $this->todayCalories = Entry::whereDate('created_at', today())->sum('calories');
+        $this->todayEntries = Entry::whereDate('created_at', today())
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'food', 'calories', 'created_at']);
+    }
+
+    public function render()
+    {
+        return view('livewire.homepage')->layout('layouts.app');
     }
 }
