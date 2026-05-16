@@ -17,11 +17,10 @@ class Homepage extends Component
     public int $todayCalories = 0;
     public int $dailyGoal = 2000;
     public ?string $explanation = null;
-    public \Illuminate\Support\Collection $todayEntries;
 
     public function mount(): void
     {
-        $this->refreshTotals();
+        $this->todayCalories = $this->queryTodayCalories();
     }
 
     public function estimate(): void
@@ -63,7 +62,7 @@ class Homepage extends Component
             'calories' => $this->calories,
         ]);
 
-        $this->refreshTotals();
+        $this->todayCalories = $this->queryTodayCalories();
         $this->reset('food', 'calories', 'explanation');
     }
 
@@ -73,29 +72,27 @@ class Homepage extends Component
             ->where('user_id', auth()->id())
             ->delete();
 
-        $this->refreshTotals();
+        $this->todayCalories = $this->queryTodayCalories();
     }
 
-    private function refreshTotals(): void
+    private function queryTodayCalories(): int
     {
-        if (!auth()->check()) {
-            $this->todayCalories = 0;
-            $this->todayEntries = collect();
-            return;
-        }
+        if (!auth()->check()) return 0;
 
-        $this->todayCalories = Entry::where('user_id', auth()->id())
+        return Entry::where('user_id', auth()->id())
             ->whereDate('created_at', today())
             ->sum('calories');
-
-        $this->todayEntries = Entry::where('user_id', auth()->id())
-            ->whereDate('created_at', today())
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'food', 'calories', 'created_at']);
     }
 
     public function render()
     {
-        return view('livewire.homepage')->layout('layouts.app');
+        $todayEntries = auth()->check()
+            ? Entry::where('user_id', auth()->id())
+                ->whereDate('created_at', today())
+                ->orderBy('created_at', 'desc')
+                ->get(['id', 'food', 'calories', 'created_at'])
+            : collect();
+
+        return view('livewire.homepage', compact('todayEntries'))->layout('layouts.app');
     }
 }

@@ -88,7 +88,7 @@ it('loads todayEntries in descending order on mount', function () {
 
     $component = Livewire::actingAs($user)->test(Homepage::class);
 
-    expect($component->get('todayEntries')->first()->id)->toBe($second->id);
+    expect($component->viewData('todayEntries')->first()->id)->toBe($second->id);
 });
 
 it('estimates calories using the AI service', function () {
