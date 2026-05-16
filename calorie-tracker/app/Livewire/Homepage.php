@@ -20,6 +20,7 @@ class Homepage extends Component
 
     public function mount(): void
     {
+        $this->dailyGoal     = auth()->check() ? (auth()->user()->daily_goal ?? 2000) : 2000;
         $this->todayCalories = $this->queryTodayCalories();
     }
 

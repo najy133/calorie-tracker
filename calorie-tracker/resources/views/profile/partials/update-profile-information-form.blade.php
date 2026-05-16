@@ -47,6 +47,12 @@
             @endif
         </div>
 
+        <div>
+            <x-input-label for="daily_goal" :value="__('Daily Calorie Goal (kcal)')" />
+            <x-text-input id="daily_goal" name="daily_goal" type="number" min="500" max="10000" class="mt-1 block w-full" :value="old('daily_goal', $user->daily_goal ?? 2000)" required />
+            <x-input-error class="mt-2" :messages="$errors->get('daily_goal')" />
+        </div>
+
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 

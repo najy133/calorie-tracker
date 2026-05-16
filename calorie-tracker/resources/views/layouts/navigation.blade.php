@@ -4,15 +4,29 @@
 
             {{-- Brand --}}
             <div class="flex items-center">
-                <a href="{{ route('home') }}" class="text-lg font-bold text-gray-900 tracking-tight">
-                    Calorie Tracker
-                </a>
+                @auth
+                    <a href="{{ route('dashboard') }}" class="text-lg font-bold text-gray-900 tracking-tight hover:text-indigo-600 transition">
+                        Calorie Tracker
+                    </a>
+                @else
+                    <a href="{{ route('home') }}" class="text-lg font-bold text-gray-900 tracking-tight hover:text-indigo-600 transition">
+                        Calorie Tracker
+                    </a>
+                @endauth
             </div>
 
             {{-- Desktop right side --}}
             <div class="hidden sm:flex sm:items-center gap-3">
                 @auth
-                    <span class="text-sm text-gray-500">{{ Auth::user()->name }}</span>
+                    <a href="{{ route('dashboard') }}"
+                       class="text-sm {{ request()->routeIs('dashboard') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-indigo-600' }} transition">
+                        Dashboard
+                    </a>
+
+                    <a href="{{ route('home') }}"
+                       class="inline-flex items-center px-4 py-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-medium shadow-sm hover:opacity-90 transition">
+                        Log Meal
+                    </a>
 
                     <a href="{{ route('profile.edit') }}"
                        class="text-sm text-gray-600 hover:text-indigo-600 transition">
@@ -59,8 +73,15 @@
     <div :class="{'block': open, 'hidden': !open}" class="hidden sm:hidden border-t border-gray-200/60">
         <div class="px-6 py-4 space-y-3">
             @auth
-                <div class="text-sm font-medium text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="text-xs text-gray-500 -mt-2">{{ Auth::user()->email }}</div>
+                <a href="{{ route('dashboard') }}"
+                   class="block text-sm {{ request()->routeIs('dashboard') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-indigo-600' }} transition">
+                    Dashboard
+                </a>
+
+                <a href="{{ route('home') }}"
+                   class="block text-sm font-medium text-indigo-600 hover:text-indigo-700 transition">
+                    Log Meal
+                </a>
 
                 <a href="{{ route('profile.edit') }}"
                    class="block text-sm text-gray-600 hover:text-indigo-600 transition">

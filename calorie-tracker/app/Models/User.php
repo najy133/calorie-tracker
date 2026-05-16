@@ -47,6 +47,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'daily_goal',
     ];
 
     /**
@@ -68,7 +69,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
+            'daily_goal'        => 'integer',
         ];
     }
 
