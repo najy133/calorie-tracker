@@ -5,7 +5,12 @@ use App\Livewire\Dashboard;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', Homepage::class)->name('home');
+Route::get('/', function () {
+    if (auth()->check()) return redirect()->route('home');
+    return view('landing');
+});
+
+Route::get('/home', Homepage::class)->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
