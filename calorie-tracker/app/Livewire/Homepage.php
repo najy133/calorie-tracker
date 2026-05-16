@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\Attributes\Rule;
 use App\Models\Entry;
 use App\Services\CalorieEstimator;
+use Illuminate\Support\Facades\RateLimiter;
 
 class Homepage extends Component
 {
@@ -16,16 +17,26 @@ class Homepage extends Component
     public int $todayCalories = 0;
     public int $dailyGoal = 2000;
     public ?string $explanation = null;
-    public \Illuminate\Support\Collection $todayEntries;
 
     public function mount(): void
     {
-        $this->refreshTotals();
+        $this->dailyGoal     = auth()->check() ? (auth()->user()->daily_goal ?? 2000) : 2000;
+        $this->todayCalories = $this->queryTodayCalories();
     }
 
     public function estimate(): void
     {
         $this->validate();
+
+        $key = 'estimate:' . request()->ip();
+
+        if (RateLimiter::tooManyAttempts($key, maxAttempts: 10)) {
+            $seconds = RateLimiter::availableIn($key);
+            $this->addError('food', "Too many requests. Please wait {$seconds} seconds.");
+            return;
+        }
+
+        RateLimiter::hit($key, decaySeconds: 60);
 
         try {
             $result = app(CalorieEstimator::class)->estimate($this->food);
@@ -39,33 +50,50 @@ class Homepage extends Component
 
     public function save(): void
     {
+        if (!auth()->check()) {
+            $this->redirect(route('login'));
+            return;
+        }
+
         if ($this->calories <= 0 || blank($this->food)) return;
 
         Entry::create([
+            'user_id' => auth()->id(),
             'food' => $this->food,
             'calories' => $this->calories,
         ]);
 
-        $this->refreshTotals();
+        $this->todayCalories = $this->queryTodayCalories();
         $this->reset('food', 'calories', 'explanation');
     }
 
     public function delete(int $id): void
     {
-        Entry::where('id', $id)->delete();
-        $this->refreshTotals();
+        Entry::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->delete();
+
+        $this->todayCalories = $this->queryTodayCalories();
     }
 
-    private function refreshTotals(): void
+    private function queryTodayCalories(): int
     {
-        $this->todayCalories = Entry::whereDate('created_at', today())->sum('calories');
-        $this->todayEntries = Entry::whereDate('created_at', today())
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'food', 'calories', 'created_at']);
+        if (!auth()->check()) return 0;
+
+        return Entry::where('user_id', auth()->id())
+            ->whereDate('created_at', today())
+            ->sum('calories');
     }
 
     public function render()
     {
-        return view('livewire.homepage')->layout('layouts.app');
+        $todayEntries = auth()->check()
+            ? Entry::where('user_id', auth()->id())
+                ->whereDate('created_at', today())
+                ->orderBy('created_at', 'desc')
+                ->get(['id', 'food', 'calories', 'created_at'])
+            : collect();
+
+        return view('livewire.homepage', compact('todayEntries'))->layout('layouts.app');
     }
 }
