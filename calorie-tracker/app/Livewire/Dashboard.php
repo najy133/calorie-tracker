@@ -16,6 +16,13 @@ class Dashboard extends Component
         $this->streak    = $this->calculateStreak();
     }
 
+    public function delete(int $id): void
+    {
+        Entry::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->delete();
+    }
+
     private function calculateStreak(): int
     {
         $streak = 0;
@@ -59,7 +66,7 @@ class Dashboard extends Component
         $recentEntries = Entry::where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->limit(50)
-            ->get(['id', 'food', 'calories', 'created_at'])
+            ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'created_at'])
             ->groupBy(fn ($e) => $e->created_at->toDateString());
 
         return view('livewire.dashboard', compact('weeklyData', 'weeklyAverage', 'recentEntries'))

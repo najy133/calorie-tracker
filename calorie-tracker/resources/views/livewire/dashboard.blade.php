@@ -103,14 +103,31 @@
                         {{-- Entries --}}
                         <ul class="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden">
                             @foreach($entries as $entry)
-                                <li class="flex items-center justify-between px-4 py-3 bg-white">
+                                <li wire:key="{{ $entry->id }}" class="flex items-center justify-between px-4 py-3 bg-white group">
                                     <div class="flex-1 min-w-0">
                                         <p class="text-sm font-medium text-gray-800 truncate">{{ $entry->food }}</p>
-                                        <p class="text-xs text-gray-400 mt-0.5">{{ $entry->created_at->format('g:i A') }}</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">
+                                            {{ $entry->created_at->format('g:i A') }}
+                                            @if($entry->protein || $entry->carbs || $entry->fat)
+                                                &nbsp;·&nbsp; P: {{ $entry->protein }}g &nbsp;C: {{ $entry->carbs }}g &nbsp;F: {{ $entry->fat }}g
+                                            @endif
+                                        </p>
                                     </div>
-                                    <span class="ml-4 text-sm font-semibold text-indigo-700 shrink-0">
-                                        {{ number_format($entry->calories) }} kcal
-                                    </span>
+                                    <div class="flex items-center gap-3 ml-4 shrink-0">
+                                        <span class="text-sm font-semibold text-indigo-700">
+                                            {{ number_format($entry->calories) }} kcal
+                                        </span>
+                                        <button
+                                            wire:click="delete({{ $entry->id }})"
+                                            wire:confirm="Remove this entry?"
+                                            wire:loading.attr="disabled"
+                                            wire:target="delete({{ $entry->id }})"
+                                            class="text-xs text-gray-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
+                                            title="Remove entry"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
                                 </li>
                             @endforeach
                         </ul>

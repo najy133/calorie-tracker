@@ -9,7 +9,7 @@ use RuntimeException;
 class CalorieEstimator
 {
     /**
-     * @return array{calories: int, explanation: string|null}
+     * @return array{calories: int, protein: int, carbs: int, fat: int, explanation: string|null}
      * @throws RuntimeException
      */
     public function estimate(string $food): array
@@ -28,7 +28,10 @@ class CalorieEstimator
         }
 
         return [
-            'calories' => max(0, (int) $data['calories']),
+            'calories'    => max(0, (int) ($data['calories'] ?? 0)),
+            'protein'     => max(0, (int) ($data['protein'] ?? 0)),
+            'carbs'       => max(0, (int) ($data['carbs'] ?? 0)),
+            'fat'         => max(0, (int) ($data['fat'] ?? 0)),
             'explanation' => isset($data['explanation']) ? (string) $data['explanation'] : null,
         ];
     }
@@ -36,10 +39,12 @@ class CalorieEstimator
     private function buildPrompt(string $food): string
     {
         return <<<PROMPT
-        Estimate the calories for the following food input and return a JSON object.
+        Estimate the nutrition for the following food input and return a JSON object.
 
         Required schema:
-        {"calories": integer, "explanation": string}
+        {"calories": integer, "protein": integer, "carbs": integer, "fat": integer, "explanation": string}
+
+        All numeric fields are integers. Protein, carbs, and fat are in grams.
 
         Rules:
         - Any edible item, meal, quantity, or restaurant reference is valid food.
@@ -50,10 +55,10 @@ class CalorieEstimator
 
         Examples:
         Input: 4 chicken breasts
-        Output: {"calories": 800, "explanation": "Assumed medium grilled chicken breasts (~200g each). Specify size or cooking method for a better estimate."}
+        Output: {"calories": 800, "protein": 120, "carbs": 0, "fat": 20, "explanation": "Assumed medium grilled chicken breasts (~200g each). Specify size or cooking method for a better estimate."}
 
         Input: large Big Mac meal
-        Output: {"calories": 1100, "explanation": "Assumed standard large Big Mac meal with large fries and a medium soft drink. Swapping the drink would change this significantly."}
+        Output: {"calories": 1100, "protein": 45, "carbs": 120, "fat": 44, "explanation": "Assumed standard large Big Mac meal with large fries and a medium soft drink. Swapping the drink would change this significantly."}
 
         Input: {$food}
         Output:

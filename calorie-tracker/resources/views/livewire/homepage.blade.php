@@ -123,24 +123,31 @@ Example: 2 eggs, toast with butter"
                 @enderror
 
                 @if($food && $calories)
-                    <div wire:transition class="mt-4 flex items-center justify-between p-4 rounded-xl bg-emerald-50 border border-emerald-200">
-                        <div>
-                            <p class="text-xs text-emerald-700 uppercase tracking-wide font-medium">Estimated</p>
-                            <p class="text-2xl font-bold text-emerald-700">
-                                {{ number_format($calories) }} <span class="text-sm font-medium">kcal</span>
-                            </p>
+                    <div wire:transition class="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-emerald-700 uppercase tracking-wide font-medium">Estimated</p>
+                                <p class="text-2xl font-bold text-emerald-700">
+                                    {{ number_format($calories) }} <span class="text-sm font-medium">kcal</span>
+                                </p>
+                                @if($protein || $carbs || $fat)
+                                    <p class="text-xs text-emerald-600 mt-1">
+                                        P: {{ $protein }}g &nbsp;·&nbsp; C: {{ $carbs }}g &nbsp;·&nbsp; F: {{ $fat }}g
+                                    </p>
+                                @endif
+                            </div>
+                            <button
+                                wire:click="save"
+                                wire:loading.attr="disabled"
+                                wire:loading.class="opacity-60 cursor-not-allowed"
+                                wire:target="save"
+                                class="inline-flex items-center gap-2 rounded-full bg-emerald-600 text-white px-4 py-2 text-sm font-medium shadow hover:opacity-90 transition"
+                            >
+                                <span wire:loading wire:target="save" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <span wire:loading.remove wire:target="save">✔</span>
+                                Save
+                            </button>
                         </div>
-                        <button
-                            wire:click="save"
-                            wire:loading.attr="disabled"
-                            wire:loading.class="opacity-60 cursor-not-allowed"
-                            wire:target="save"
-                            class="inline-flex items-center gap-2 rounded-full bg-emerald-600 text-white px-4 py-2 text-sm font-medium shadow hover:opacity-90 transition"
-                        >
-                            <span wire:loading wire:target="save" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            <span wire:loading.remove wire:target="save">✔</span>
-                            Save
-                        </button>
                     </div>
                 @endif
 
@@ -190,7 +197,12 @@ Example: 2 eggs, toast with butter"
                         <li wire:key="{{ $entry->id }}" class="flex items-center justify-between py-3 group">
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-gray-800 truncate">{{ $entry->food }}</p>
-                                <p class="text-xs text-gray-400 mt-0.5">{{ $entry->created_at->format('g:i A') }}</p>
+                                <p class="text-xs text-gray-400 mt-0.5">
+                                    {{ $entry->created_at->format('g:i A') }}
+                                    @if($entry->protein || $entry->carbs || $entry->fat)
+                                        &nbsp;·&nbsp; P: {{ $entry->protein }}g &nbsp;C: {{ $entry->carbs }}g &nbsp;F: {{ $entry->fat }}g
+                                    @endif
+                                </p>
                             </div>
                             <div class="flex items-center gap-4 ml-4 shrink-0">
                                 <span class="text-sm font-semibold text-indigo-700">

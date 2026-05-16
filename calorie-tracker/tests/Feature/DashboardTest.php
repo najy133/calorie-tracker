@@ -70,3 +70,26 @@ it('does not count other users data in weekly totals', function () {
 
     expect($today['calories'])->toBe(500);
 });
+
+it('can delete an entry from the dashboard', function () {
+    $user  = User::factory()->create();
+    $entry = Entry::factory()->create(['user_id' => $user->id, 'created_at' => today()]);
+
+    Livewire::actingAs($user)
+        ->test(Dashboard::class)
+        ->call('delete', $entry->id);
+
+    expect(Entry::find($entry->id))->toBeNull();
+});
+
+it('cannot delete another user\'s entry from the dashboard', function () {
+    $user  = User::factory()->create();
+    $other = User::factory()->create();
+    $entry = Entry::factory()->create(['user_id' => $other->id, 'created_at' => today()]);
+
+    Livewire::actingAs($user)
+        ->test(Dashboard::class)
+        ->call('delete', $entry->id);
+
+    expect(Entry::find($entry->id))->not->toBeNull();
+});

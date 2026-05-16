@@ -14,6 +14,9 @@ class Homepage extends Component
     public string $food = '';
 
     public int $calories = 0;
+    public int $protein = 0;
+    public int $carbs = 0;
+    public int $fat = 0;
     public int $todayCalories = 0;
     public int $dailyGoal = 2000;
     public ?string $explanation = null;
@@ -40,7 +43,10 @@ class Homepage extends Component
 
         try {
             $result = app(CalorieEstimator::class)->estimate($this->food);
-            $this->calories = $result['calories'];
+            $this->calories    = $result['calories'];
+            $this->protein     = $result['protein'];
+            $this->carbs       = $result['carbs'];
+            $this->fat         = $result['fat'];
             $this->explanation = $result['explanation'];
         } catch (\Throwable $e) {
             $this->addError('food', 'Could not estimate calories. Please try again.');
@@ -58,13 +64,16 @@ class Homepage extends Component
         if ($this->calories <= 0 || blank($this->food)) return;
 
         Entry::create([
-            'user_id' => auth()->id(),
-            'food' => $this->food,
+            'user_id'  => auth()->id(),
+            'food'     => $this->food,
             'calories' => $this->calories,
+            'protein'  => $this->protein,
+            'carbs'    => $this->carbs,
+            'fat'      => $this->fat,
         ]);
 
         $this->todayCalories = $this->queryTodayCalories();
-        $this->reset('food', 'calories', 'explanation');
+        $this->reset('food', 'calories', 'protein', 'carbs', 'fat', 'explanation');
     }
 
     public function delete(int $id): void
@@ -91,7 +100,7 @@ class Homepage extends Component
             ? Entry::where('user_id', auth()->id())
                 ->whereDate('created_at', today())
                 ->orderBy('created_at', 'desc')
-                ->get(['id', 'food', 'calories', 'created_at'])
+                ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'created_at'])
             : collect();
 
         return view('livewire.homepage', compact('todayEntries'))->layout('layouts.app');
