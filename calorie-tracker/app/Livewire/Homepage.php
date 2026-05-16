@@ -14,9 +14,15 @@ class Homepage extends Component
     public string $food = '';
 
     public int $calories = 0;
+    public int $protein = 0;
+    public int $carbs = 0;
+    public int $fat = 0;
     public int $todayCalories = 0;
     public int $dailyGoal = 2000;
     public ?string $explanation = null;
+
+    public ?int $editingId = null;
+    public string $editFood = '';
 
     public function mount(): void
     {
@@ -40,7 +46,10 @@ class Homepage extends Component
 
         try {
             $result = app(CalorieEstimator::class)->estimate($this->food);
-            $this->calories = $result['calories'];
+            $this->calories    = $result['calories'];
+            $this->protein     = $result['protein'];
+            $this->carbs       = $result['carbs'];
+            $this->fat         = $result['fat'];
             $this->explanation = $result['explanation'];
         } catch (\Throwable $e) {
             $this->addError('food', 'Could not estimate calories. Please try again.');
@@ -58,13 +67,65 @@ class Homepage extends Component
         if ($this->calories <= 0 || blank($this->food)) return;
 
         Entry::create([
-            'user_id' => auth()->id(),
-            'food' => $this->food,
+            'user_id'  => auth()->id(),
+            'food'     => $this->food,
             'calories' => $this->calories,
+            'protein'  => $this->protein,
+            'carbs'    => $this->carbs,
+            'fat'      => $this->fat,
         ]);
 
         $this->todayCalories = $this->queryTodayCalories();
-        $this->reset('food', 'calories', 'explanation');
+        $this->reset('food', 'calories', 'protein', 'carbs', 'fat', 'explanation');
+    }
+
+    public function startEdit(int $id): void
+    {
+        $entry = Entry::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
+
+        $this->editingId = $id;
+        $this->editFood  = $entry->food;
+    }
+
+    public function saveEdit(): void
+    {
+        if (!$this->editingId || blank($this->editFood)) return;
+
+        $key = 'estimate:' . request()->ip();
+
+        if (RateLimiter::tooManyAttempts($key, maxAttempts: 10)) {
+            $seconds = RateLimiter::availableIn($key);
+            $this->addError('editFood', "Too many requests. Please wait {$seconds} seconds.");
+            return;
+        }
+
+        RateLimiter::hit($key, decaySeconds: 60);
+
+        try {
+            $result = app(CalorieEstimator::class)->estimate($this->editFood);
+
+            Entry::where('id', $this->editingId)
+                ->where('user_id', auth()->id())
+                ->update([
+                    'food'     => $this->editFood,
+                    'calories' => $result['calories'],
+                    'protein'  => $result['protein'],
+                    'carbs'    => $result['carbs'],
+                    'fat'      => $result['fat'],
+                ]);
+
+            $this->todayCalories = $this->queryTodayCalories();
+            $this->cancelEdit();
+        } catch (\Throwable $e) {
+            $this->addError('editFood', 'Could not estimate calories. Please try again.');
+            \Log::error('CalorieEstimator failed on edit', ['error' => $e->getMessage(), 'food' => $this->editFood]);
+        }
+    }
+
+    public function cancelEdit(): void
+    {
+        $this->editingId = null;
+        $this->editFood  = '';
     }
 
     public function delete(int $id): void
@@ -91,7 +152,7 @@ class Homepage extends Component
             ? Entry::where('user_id', auth()->id())
                 ->whereDate('created_at', today())
                 ->orderBy('created_at', 'desc')
-                ->get(['id', 'food', 'calories', 'created_at'])
+                ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'created_at'])
             : collect();
 
         return view('livewire.homepage', compact('todayEntries'))->layout('layouts.app');

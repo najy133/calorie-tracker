@@ -96,7 +96,7 @@ it('estimates calories using the AI service', function () {
         ->shouldReceive('estimate')
         ->with('2 scrambled eggs')
         ->once()
-        ->andReturn(['calories' => 180, 'explanation' => 'Assumed two large eggs, scrambled in butter.']);
+        ->andReturn(['calories' => 180, 'protein' => 12, 'carbs' => 1, 'fat' => 14, 'explanation' => 'Assumed two large eggs, scrambled in butter.']);
 
     Livewire::test(Homepage::class)
         ->set('food', '2 scrambled eggs')
@@ -175,4 +175,39 @@ it('resets explanation after saving', function () {
         ->set('explanation', 'Assumed one medium apple.')
         ->call('save')
         ->assertSet('explanation', null);
+});
+
+it('saves macros with an entry', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Homepage::class)
+        ->set('food', 'grilled chicken breast')
+        ->set('calories', 300)
+        ->set('protein', 55)
+        ->set('carbs', 0)
+        ->set('fat', 7)
+        ->call('save');
+
+    $entry = Entry::where('user_id', $user->id)->first();
+
+    expect($entry->protein)->toBe(55);
+    expect($entry->carbs)->toBe(0);
+    expect($entry->fat)->toBe(7);
+});
+
+it('resets macros after saving', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Homepage::class)
+        ->set('food', 'banana')
+        ->set('calories', 90)
+        ->set('protein', 1)
+        ->set('carbs', 23)
+        ->set('fat', 0)
+        ->call('save')
+        ->assertSet('protein', 0)
+        ->assertSet('carbs', 0)
+        ->assertSet('fat', 0);
 });

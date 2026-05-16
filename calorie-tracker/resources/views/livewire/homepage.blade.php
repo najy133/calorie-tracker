@@ -38,7 +38,7 @@
 
                 <div class="mb-6">
                     <div class="flex items-baseline gap-2">
-                        <span wire:transition class="text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+                        <span class="text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
                             {{ number_format($todayCalories) }}
                         </span>
                         <span class="text-lg text-gray-500 font-medium">kcal</span>
@@ -123,24 +123,31 @@ Example: 2 eggs, toast with butter"
                 @enderror
 
                 @if($food && $calories)
-                    <div wire:transition class="mt-4 flex items-center justify-between p-4 rounded-xl bg-emerald-50 border border-emerald-200">
-                        <div>
-                            <p class="text-xs text-emerald-700 uppercase tracking-wide font-medium">Estimated</p>
-                            <p class="text-2xl font-bold text-emerald-700">
-                                {{ number_format($calories) }} <span class="text-sm font-medium">kcal</span>
-                            </p>
+                    <div wire:transition class="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-emerald-700 uppercase tracking-wide font-medium">Estimated</p>
+                                <p class="text-2xl font-bold text-emerald-700">
+                                    {{ number_format($calories) }} <span class="text-sm font-medium">kcal</span>
+                                </p>
+                                @if($protein || $carbs || $fat)
+                                    <p class="text-xs text-emerald-600 mt-1">
+                                        P: {{ $protein }}g &nbsp;·&nbsp; C: {{ $carbs }}g &nbsp;·&nbsp; F: {{ $fat }}g
+                                    </p>
+                                @endif
+                            </div>
+                            <button
+                                wire:click="save"
+                                wire:loading.attr="disabled"
+                                wire:loading.class="opacity-60 cursor-not-allowed"
+                                wire:target="save"
+                                class="inline-flex items-center gap-2 rounded-full bg-emerald-600 text-white px-4 py-2 text-sm font-medium shadow hover:opacity-90 transition"
+                            >
+                                <span wire:loading wire:target="save" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <span wire:loading.remove wire:target="save">✔</span>
+                                Save
+                            </button>
                         </div>
-                        <button
-                            wire:click="save"
-                            wire:loading.attr="disabled"
-                            wire:loading.class="opacity-60 cursor-not-allowed"
-                            wire:target="save"
-                            class="inline-flex items-center gap-2 rounded-full bg-emerald-600 text-white px-4 py-2 text-sm font-medium shadow hover:opacity-90 transition"
-                        >
-                            <span wire:loading wire:target="save" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            <span wire:loading.remove wire:target="save">✔</span>
-                            Save
-                        </button>
                     </div>
                 @endif
 
@@ -187,26 +194,58 @@ Example: 2 eggs, toast with butter"
             @else
                 <ul class="divide-y divide-gray-100">
                     @foreach($todayEntries as $entry)
-                        <li wire:key="{{ $entry->id }}" class="flex items-center justify-between py-3 group">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-800 truncate">{{ $entry->food }}</p>
-                                <p class="text-xs text-gray-400 mt-0.5">{{ $entry->created_at->format('g:i A') }}</p>
-                            </div>
-                            <div class="flex items-center gap-4 ml-4 shrink-0">
-                                <span class="text-sm font-semibold text-indigo-700">
-                                    {{ number_format($entry->calories) }} kcal
-                                </span>
-                                <button
-                                    wire:click="delete({{ $entry->id }})"
-                                    wire:confirm="Remove this entry?"
-                                    wire:loading.attr="disabled"
-                                    wire:target="delete({{ $entry->id }})"
-                                    class="text-xs text-gray-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
-                                    title="Remove entry"
-                                >
-                                    ✕
-                                </button>
-                            </div>
+                        <li wire:key="{{ $entry->id }}" class="py-3">
+                            @if($editingId === $entry->id)
+                                {{-- Inline edit form --}}
+                                <div class="space-y-2">
+                                    <input wire:model="editFood" type="text"
+                                           class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/40 focus:outline-none"
+                                           placeholder="Food description" />
+                                    @error('editFood')
+                                        <p class="text-xs text-red-500">{{ $message }}</p>
+                                    @enderror
+                                    <p class="text-xs text-gray-400">Macros will be re-estimated automatically.</p>
+                                    <div class="flex gap-2">
+                                        <button wire:click="saveEdit"
+                                                wire:loading.attr="disabled"
+                                                wire:loading.class="opacity-60 cursor-not-allowed"
+                                                wire:target="saveEdit"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:opacity-90 transition">
+                                            <span wire:loading wire:target="saveEdit" class="inline-block w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                            Save
+                                        </button>
+                                        <button wire:click="cancelEdit"
+                                                class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-xs font-medium hover:bg-gray-200 transition">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            @else
+                                {{-- Normal row --}}
+                                <div class="flex items-center justify-between group">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-800 truncate">{{ $entry->food }}</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">
+                                            {{ $entry->created_at->format('g:i A') }}
+                                            @if($entry->protein || $entry->carbs || $entry->fat)
+                                                &nbsp;·&nbsp; P: {{ $entry->protein }}g &nbsp;C: {{ $entry->carbs }}g &nbsp;F: {{ $entry->fat }}g
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-3 ml-4 shrink-0">
+                                        <span class="text-sm font-semibold text-indigo-700">
+                                            {{ number_format($entry->calories) }} kcal
+                                        </span>
+                                        <button wire:click="startEdit({{ $entry->id }})"
+                                                class="text-xs text-gray-300 hover:text-indigo-500 transition opacity-0 group-hover:opacity-100"
+                                                title="Edit entry">✎</button>
+                                        <button wire:click="delete({{ $entry->id }})"
+                                                wire:confirm="Remove this entry?"
+                                                class="text-xs text-gray-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"
+                                                title="Remove entry">✕</button>
+                                    </div>
+                                </div>
+                            @endif
                         </li>
                     @endforeach
                 </ul>

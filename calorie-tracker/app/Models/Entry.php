@@ -13,5 +13,15 @@ class Entry extends Model
         'user_id',
         'food',
         'calories',
+        'protein',
+        'carbs',
+        'fat',
+    ];
+
+    protected $casts = [
+        'calories' => 'integer',
+        'protein'  => 'integer',
+        'carbs'    => 'integer',
+        'fat'      => 'integer',
     ];
 }

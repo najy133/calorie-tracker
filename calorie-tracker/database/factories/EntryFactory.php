@@ -18,6 +18,9 @@ class EntryFactory extends Factory
                 'bowl of oatmeal with banana',
             ]),
             'calories' => fake()->numberBetween(150, 900),
+            'protein'  => fake()->numberBetween(5, 40),
+            'carbs'    => fake()->numberBetween(10, 80),
+            'fat'      => fake()->numberBetween(2, 30),
         ];
     }
 }
