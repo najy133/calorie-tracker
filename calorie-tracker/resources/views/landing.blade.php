@@ -56,16 +56,13 @@
                     Log a meal<br>before you<br>forget it.
                 </h1>
 
-                <p class="text-zinc-500 dark:text-zinc-400 text-base leading-relaxed mb-3 max-w-sm">
-                    Type what you ate in plain English. Get calories, protein, carbs, and fat back in seconds.
-                </p>
-                <p class="text-zinc-400 dark:text-zinc-500 text-sm leading-relaxed mb-10 max-w-sm">
-                    No barcode scanning. No searching a database. No logging in just to remember you had toast.
+                <p class="text-zinc-500 dark:text-zinc-400 text-base leading-relaxed mb-10 max-w-sm">
+                    Type what you ate in plain English. No barcode scanning, no database — just your calories and macros back in seconds.
                 </p>
 
                 <div class="flex items-center gap-6">
                     <a href="{{ route('register') }}"
-                       class="inline-flex items-center px-5 py-2.5 rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 text-sm font-semibold hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors duration-150">
+                       class="inline-flex items-center px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors duration-150 shadow-sm shadow-emerald-600/20">
                         Get started free
                     </a>
                     <a href="{{ route('home') }}"
@@ -180,28 +177,28 @@
         <div class="grid md:grid-cols-2 gap-x-16 gap-y-10">
 
             <div>
-                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Macros</p>
+                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Calories aren't the whole story</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
-                    Every estimate comes with calories, protein, carbs, and fat. Colour-coded in your history so you can read a day at a glance without doing the maths yourself.
+                    Every estimate comes with protein, carbs, and fat alongside calories. Colour-coded in your history so you can read a day at a glance without doing the maths yourself.
                 </p>
             </div>
 
             <div>
-                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Daily goal ring</p>
+                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">One look is enough</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
                     Your progress ring fills as you log. It shifts from green to amber as you near your goal, and red if you go over — no configuration required.
                 </p>
             </div>
 
             <div>
-                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">7-day dashboard</p>
+                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Find the pattern</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
                     A bar chart of your last seven days so you can spot patterns — not just how today went, but whether Tuesday is always the problem.
                 </p>
             </div>
 
             <div>
-                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Streaks</p>
+                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">The chain effect</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
                     Log at least once a day and you build a streak. Simple, but it works — the same reason you don't want to break a chain once it gets long enough.
                 </p>
