@@ -110,34 +110,17 @@
                                             <input wire:model="editFood" type="text"
                                                    class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/40 focus:outline-none"
                                                    placeholder="Food description" />
-                                            <div class="flex gap-2 flex-wrap">
-                                                <div class="flex items-center gap-1">
-                                                    <label class="text-xs text-gray-500">kcal</label>
-                                                    <input wire:model="editCalories" type="number" min="1"
-                                                           class="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-indigo-400 focus:outline-none" />
-                                                </div>
-                                                <div class="flex items-center gap-1">
-                                                    <label class="text-xs text-gray-500">P</label>
-                                                    <input wire:model="editProtein" type="number" min="0"
-                                                           class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-indigo-400 focus:outline-none" />
-                                                    <span class="text-xs text-gray-400">g</span>
-                                                </div>
-                                                <div class="flex items-center gap-1">
-                                                    <label class="text-xs text-gray-500">C</label>
-                                                    <input wire:model="editCarbs" type="number" min="0"
-                                                           class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-indigo-400 focus:outline-none" />
-                                                    <span class="text-xs text-gray-400">g</span>
-                                                </div>
-                                                <div class="flex items-center gap-1">
-                                                    <label class="text-xs text-gray-500">F</label>
-                                                    <input wire:model="editFat" type="number" min="0"
-                                                           class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:border-indigo-400 focus:outline-none" />
-                                                    <span class="text-xs text-gray-400">g</span>
-                                                </div>
-                                            </div>
+                                            @error('editFood')
+                                                <p class="text-xs text-red-500">{{ $message }}</p>
+                                            @enderror
+                                            <p class="text-xs text-gray-400">Macros will be re-estimated automatically.</p>
                                             <div class="flex gap-2">
                                                 <button wire:click="saveEdit"
-                                                        class="px-3 py-1 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:opacity-90 transition">
+                                                        wire:loading.attr="disabled"
+                                                        wire:loading.class="opacity-60 cursor-not-allowed"
+                                                        wire:target="saveEdit"
+                                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:opacity-90 transition">
+                                                    <span wire:loading wire:target="saveEdit" class="inline-block w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                                                     Save
                                                 </button>
                                                 <button wire:click="cancelEdit"

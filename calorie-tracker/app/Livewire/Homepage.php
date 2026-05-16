@@ -23,10 +23,6 @@ class Homepage extends Component
 
     public ?int $editingId = null;
     public string $editFood = '';
-    public int $editCalories = 0;
-    public int $editProtein = 0;
-    public int $editCarbs = 0;
-    public int $editFat = 0;
 
     public function mount(): void
     {
@@ -87,40 +83,49 @@ class Homepage extends Component
     {
         $entry = Entry::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
 
-        $this->editingId      = $id;
-        $this->editFood       = $entry->food;
-        $this->editCalories   = $entry->calories;
-        $this->editProtein    = $entry->protein;
-        $this->editCarbs      = $entry->carbs;
-        $this->editFat        = $entry->fat;
+        $this->editingId = $id;
+        $this->editFood  = $entry->food;
     }
 
     public function saveEdit(): void
     {
-        if (!$this->editingId || blank($this->editFood) || $this->editCalories <= 0) return;
+        if (!$this->editingId || blank($this->editFood)) return;
 
-        Entry::where('id', $this->editingId)
-            ->where('user_id', auth()->id())
-            ->update([
-                'food'     => $this->editFood,
-                'calories' => $this->editCalories,
-                'protein'  => $this->editProtein,
-                'carbs'    => $this->editCarbs,
-                'fat'      => $this->editFat,
-            ]);
+        $key = 'estimate:' . request()->ip();
 
-        $this->todayCalories = $this->queryTodayCalories();
-        $this->cancelEdit();
+        if (RateLimiter::tooManyAttempts($key, maxAttempts: 10)) {
+            $seconds = RateLimiter::availableIn($key);
+            $this->addError('editFood', "Too many requests. Please wait {$seconds} seconds.");
+            return;
+        }
+
+        RateLimiter::hit($key, decaySeconds: 60);
+
+        try {
+            $result = app(CalorieEstimator::class)->estimate($this->editFood);
+
+            Entry::where('id', $this->editingId)
+                ->where('user_id', auth()->id())
+                ->update([
+                    'food'     => $this->editFood,
+                    'calories' => $result['calories'],
+                    'protein'  => $result['protein'],
+                    'carbs'    => $result['carbs'],
+                    'fat'      => $result['fat'],
+                ]);
+
+            $this->todayCalories = $this->queryTodayCalories();
+            $this->cancelEdit();
+        } catch (\Throwable $e) {
+            $this->addError('editFood', 'Could not estimate calories. Please try again.');
+            \Log::error('CalorieEstimator failed on edit', ['error' => $e->getMessage(), 'food' => $this->editFood]);
+        }
     }
 
     public function cancelEdit(): void
     {
-        $this->editingId    = null;
-        $this->editFood     = '';
-        $this->editCalories = 0;
-        $this->editProtein  = 0;
-        $this->editCarbs    = 0;
-        $this->editFat      = 0;
+        $this->editingId = null;
+        $this->editFood  = '';
     }
 
     public function delete(int $id): void
