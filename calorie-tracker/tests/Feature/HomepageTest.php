@@ -8,8 +8,17 @@ use Livewire\Livewire;
 
 // ── Guest behaviour ──────────────────────────────────────────────────────────
 
+it('renders the landing page for guests', function () {
+    $this->get('/')->assertStatus(200)->assertSee('Log a meal before you forget it');
+});
+
+it('redirects authenticated users from landing to home', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user)->get('/')->assertRedirect(route('home'));
+});
+
 it('renders the homepage for guests', function () {
-    $this->get('/')->assertStatus(200)->assertSeeLivewire(Homepage::class);
+    $this->get('/home')->assertStatus(200)->assertSeeLivewire(Homepage::class);
 });
 
 it('shows zero calories for guests on mount', function () {
