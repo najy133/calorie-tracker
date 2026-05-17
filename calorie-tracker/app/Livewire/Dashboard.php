@@ -3,12 +3,14 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use App\Concerns\HasStreak;
 use App\Models\Entry;
 use App\Services\CalorieEstimator;
 use Illuminate\Support\Facades\RateLimiter;
 
 class Dashboard extends Component
 {
+    use HasStreak;
     public int $dailyGoal;
     public int $streak;
 
@@ -74,19 +76,6 @@ class Dashboard extends Component
         Entry::where('id', $id)
             ->where('user_id', auth()->id())
             ->delete();
-    }
-
-    private function calculateStreak(): int
-    {
-        $streak = 0;
-        $day    = today();
-
-        while (Entry::where('user_id', auth()->id())->whereDate('created_at', $day)->exists()) {
-            $streak++;
-            $day = $day->subDay();
-        }
-
-        return $streak;
     }
 
     public function render()

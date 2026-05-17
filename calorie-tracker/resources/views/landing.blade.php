@@ -38,7 +38,7 @@
         .entry-3 { animation: entry-in 0.4s ease both 1.3s; }
     </style>
 </head>
-<body class="font-sans antialiased bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 transition-colors duration-200">
+<body class="font-sans antialiased bg-gradient-to-b from-green-50 via-zinc-50 to-white dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-950 text-zinc-900 dark:text-zinc-50 transition-colors duration-200">
 
     @include('layouts.navigation')
 
@@ -158,154 +158,80 @@
         </div>
     </section>
 
-    {{-- ─────────────────────────────────────────────
-         STATEMENT — breaks the rhythm
-    ───────────────────────────────────────────── --}}
-    <div class="border-y border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
-        <div class="max-w-5xl mx-auto px-6 md:px-10 py-12">
-            <p class="text-xl md:text-2xl text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-2xl">
-                Other apps make you scan a barcode or dig through a database.
-                This one just asks what you ate —
-                <span class="text-zinc-900 dark:text-zinc-100 font-medium">"chicken salad, medium bowl"</span>
-                is enough.
-            </p>
-        </div>
-    </div>
+<x-meal-breakdown/>
 
-    {{-- ─────────────────────────────────────────────
-         INTERACTIVE BURGER
-    ───────────────────────────────────────────── --}}
-    <section class="bg-zinc-950 py-24">
-        <div class="max-w-5xl mx-auto px-6 md:px-10">
-
-            <div class="text-center mb-16">
-                <h2 class="font-serif text-4xl text-white mb-3">Break it down</h2>
-                <p class="text-zinc-500 text-sm">Hover any layer — the rest gets out of the way</p>
-            </div>
-
-            <div x-data="{ active: null }"
-                 @mouseleave="active = null"
-                 class="flex flex-col md:flex-row items-center justify-center gap-12 md:gap-20">
-
-                {{-- Burger photo with spotlight --}}
-                <div class="relative w-72 h-72 shrink-0 rounded-2xl overflow-hidden cursor-pointer select-none">
-
-                    {{-- Base image — darkens when a layer is active --}}
-                    <img src="/img/burger.jpg" alt="Burger"
-                         :class="active ? 'brightness-[0.15]' : 'brightness-100'"
-                         class="absolute inset-0 w-full h-full object-cover transition-all duration-300">
-
-                    {{-- Spotlight: one clipped copy per layer --}}
-                    @foreach([
-                        'bun-top'    => 'inset(2% 8% 58% 8% round 12px)',
-                        'bacon'      => 'inset(38% 10% 48% 10%)',
-                        'lettuce'    => 'inset(44% 4% 40% 4%)',
-                        'tomato'     => 'inset(53% 10% 34% 10%)',
-                        'cheese'     => 'inset(59% 10% 30% 10%)',
-                        'patty'      => 'inset(62% 8% 22% 8%)',
-                        'bun-bottom' => 'inset(73% 8% 3% 8% round 12px)',
-                    ] as $key => $clip)
-                        <div :class="active === '{{ $key }}' ? 'opacity-100' : 'opacity-0'"
-                             class="absolute inset-0 pointer-events-none transition-opacity duration-300 overflow-hidden"
-                             style="clip-path: {{ $clip }}">
-                            <img src="/img/burger.jpg" alt="" class="w-full h-full object-cover">
-                        </div>
-                    @endforeach
-
-                    {{-- Invisible hotspot strips --}}
-                    <div class="absolute inset-0">
-                        <div class="absolute left-0 right-0" style="top:0;height:38%"        @mouseenter="active='bun-top'"    @click="active=active==='bun-top'?null:'bun-top'"></div>
-                        <div class="absolute left-0 right-0" style="top:38%;height:8%"       @mouseenter="active='bacon'"      @click="active=active==='bacon'?null:'bacon'"></div>
-                        <div class="absolute left-0 right-0" style="top:46%;height:8%"       @mouseenter="active='lettuce'"    @click="active=active==='lettuce'?null:'lettuce'"></div>
-                        <div class="absolute left-0 right-0" style="top:54%;height:8%"       @mouseenter="active='tomato'"     @click="active=active==='tomato'?null:'tomato'"></div>
-                        <div class="absolute left-0 right-0" style="top:62%;height:5%"       @mouseenter="active='cheese'"     @click="active=active==='cheese'?null:'cheese'"></div>
-                        <div class="absolute left-0 right-0" style="top:67%;height:10%"      @mouseenter="active='patty'"      @click="active=active==='patty'?null:'patty'"></div>
-                        <div class="absolute left-0 right-0" style="top:77%;height:23%"      @mouseenter="active='bun-bottom'" @click="active=active==='bun-bottom'?null:'bun-bottom'"></div>
-                    </div>
-
-                </div>
-
-                {{-- Macro info panel --}}
-                <div class="w-52 min-h-44 flex items-center">
-
-                    <div x-show="!active" class="text-zinc-600 text-sm text-center w-full">
-                        <p>← hover a layer</p>
-                    </div>
-
-                    @foreach([
-                        'bun-top'    => ['name' => 'Top Bun',    'color' => 'bg-amber-400',  'cal' => 130, 'protein' => '4g',   'carbs' => '25g',  'fat' => '2g'],
-                        'bacon'      => ['name' => 'Bacon',      'color' => 'bg-orange-700', 'cal' => 90,  'protein' => '6g',   'carbs' => '0g',   'fat' => '7g'],
-                        'lettuce'    => ['name' => 'Lettuce',    'color' => 'bg-green-500',  'cal' => 5,   'protein' => '0.5g', 'carbs' => '1g',   'fat' => '0g'],
-                        'tomato'     => ['name' => 'Tomato',     'color' => 'bg-red-500',    'cal' => 15,  'protein' => '0.7g', 'carbs' => '3g',   'fat' => '0g'],
-                        'cheese'     => ['name' => 'Cheddar',    'color' => 'bg-yellow-400', 'cal' => 70,  'protein' => '4g',   'carbs' => '0.5g', 'fat' => '6g'],
-                        'patty'      => ['name' => 'Beef Patty', 'color' => 'bg-stone-600',  'cal' => 250, 'protein' => '22g',  'carbs' => '0g',   'fat' => '17g'],
-                        'bun-bottom' => ['name' => 'Bottom Bun', 'color' => 'bg-amber-300',  'cal' => 115, 'protein' => '3g',   'carbs' => '22g',  'fat' => '2g'],
-                    ] as $key => $layer)
-                        <div x-show="active === '{{ $key }}'" x-cloak class="w-full">
-                            <div class="flex items-center gap-2 mb-5">
-                                <span class="w-2.5 h-2.5 rounded-full {{ $layer['color'] }} shrink-0"></span>
-                                <p class="text-white font-semibold text-sm">{{ $layer['name'] }}</p>
-                            </div>
-                            <div class="space-y-3">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-zinc-500 text-xs">Calories</span>
-                                    <span class="font-mono text-white text-sm font-semibold">{{ $layer['cal'] }}</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-indigo-400 text-xs">Protein</span>
-                                    <span class="font-mono text-white text-sm font-semibold">{{ $layer['protein'] }}</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-amber-400 text-xs">Carbs</span>
-                                    <span class="font-mono text-white text-sm font-semibold">{{ $layer['carbs'] }}</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-rose-400 text-xs">Fat</span>
-                                    <span class="font-mono text-white text-sm font-semibold">{{ $layer['fat'] }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-
-                </div>
-            </div>
-
-            <p class="text-center text-xs text-zinc-700 mt-14">Full burger: ~675 kcal · P 40g · C 51g · F 34g</p>
-
-        </div>
-    </section>
-
-    {{-- ─────────────────────────────────────────────
-         WHAT YOU GET  —  prose, not cards
-    ───────────────────────────────────────────── --}}
     <section class="max-w-5xl mx-auto px-6 md:px-10 py-20">
-        <div class="grid md:grid-cols-2 gap-x-16 gap-y-10">
+        <div class="grid md:grid-cols-2 gap-x-16 gap-y-12">
 
+            {{-- Macros are colors --}}
             <div>
-                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Calories aren't the whole story</p>
+                <div class="h-12 mb-4 flex items-center" aria-hidden="true">
+                    <svg width="44" height="44" viewBox="0 0 44 44">
+                        <rect x="6" y="22" width="32" height="3" rx="1.5" class="fill-zinc-100 dark:fill-zinc-800"/>
+                        <rect x="6" y="22" width="20" height="3" rx="1.5" fill="#6366f1"/>
+                        <rect x="6" y="28" width="32" height="3" rx="1.5" class="fill-zinc-100 dark:fill-zinc-800"/>
+                        <rect x="6" y="28" width="28" height="3" rx="1.5" fill="#f59e0b"/>
+                        <rect x="6" y="34" width="32" height="3" rx="1.5" class="fill-zinc-100 dark:fill-zinc-800"/>
+                        <rect x="6" y="34" width="10" height="3" rx="1.5" fill="#f43f5e"/>
+                    </svg>
+                </div>
+                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Macros, not just calories</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
-                    Every estimate comes with protein, carbs, and fat alongside calories. Colour-coded in your history so you can read a day at a glance without doing the maths yourself.
+                    Protein, carbs, and fat colour-coded next to every meal, so you can read a day at a glance without doing the maths yourself.
                 </p>
             </div>
 
+            {{-- Ring states --}}
             <div>
+                <div class="h-12 mb-4 flex items-center" aria-hidden="true">
+                    <svg width="44" height="44" viewBox="0 0 56 56" style="transform: rotate(-90deg);">
+                        <circle cx="28" cy="28" r="22" fill="none" class="stroke-zinc-100 dark:stroke-zinc-800" stroke-width="6"/>
+                        <defs>
+                            <linearGradient id="wygRingGrad" x1="0" x2="1" y1="0" y2="0">
+                                <stop offset="0%"  stop-color="#10b981"/>
+                                <stop offset="50%" stop-color="#f59e0b"/>
+                                <stop offset="100%" stop-color="#f43f5e"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="28" cy="28" r="22" fill="none" stroke="url(#wygRingGrad)" stroke-width="6" stroke-dasharray="138.2" stroke-dashoffset="14" stroke-linecap="round"/>
+                    </svg>
+                </div>
                 <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">One look is enough</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
-                    Your progress ring fills as you log. It shifts from green to amber as you near your goal, and red if you go over — no configuration required.
+                    Your ring shifts from green to amber as you near your goal, and red if you go over — no configuration required.
                 </p>
             </div>
 
+            {{-- Weekly bars --}}
             <div>
+                <div class="h-12 mb-4 flex items-center" aria-hidden="true">
+                    <svg width="56" height="44" viewBox="0 0 70 56">
+                        <rect x="2"  y="32" width="6" height="22" rx="2" fill="#34d399"/>
+                        <rect x="12" y="22" width="6" height="32" rx="2" fill="#34d399"/>
+                        <rect x="22" y="12" width="6" height="42" rx="2" fill="#fbbf24"/>
+                        <rect x="32" y="26" width="6" height="28" rx="2" fill="#34d399"/>
+                        <rect x="42" y="18" width="6" height="36" rx="2" fill="#fbbf24"/>
+                        <rect x="52" y="28" width="6" height="26" rx="2" fill="#34d399"/>
+                        <rect x="62" y="36" width="6" height="18" rx="2" fill="#34d399"/>
+                    </svg>
+                </div>
                 <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Find the pattern</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
-                    A bar chart of your last seven days so you can spot patterns — not just how today went, but whether Tuesday is always the problem.
+                    Seven days at a glance — not just how today went, but whether Tuesday is always the problem.
                 </p>
             </div>
 
+            {{-- Streak flame --}}
             <div>
+                <div class="h-12 mb-4 flex items-center" aria-hidden="true">
+                    <svg width="44" height="44" viewBox="0 0 56 56" fill="none">
+                        <path d="M28 6c2 8 12 10 12 22a12 12 0 1 1-24 0c0-7 4-10 6-15 1 4 4 5 6-7z" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.5"/>
+                        <path d="M28 22c1 4 6 5 6 11a6 6 0 1 1-12 0c0-3 2-5 3-7 1 2 2 3 3-4z" fill="#fff" opacity="0.6"/>
+                    </svg>
+                </div>
                 <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">The chain effect</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
-                    Log at least once a day and you build a streak. Simple, but it works — the same reason you don't want to break a chain once it gets long enough.
+                    Log at least once a day and you build a streak. Simple, but it works — the same reason you don't break a chain once it's long.
                 </p>
             </div>
 

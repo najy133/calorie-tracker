@@ -1,11 +1,8 @@
 <section>
-    <header>
-        <h2 class="text-lg font-medium text-zinc-900 dark:text-zinc-50">
-            {{ __('Profile Information') }}
-        </h2>
-
-        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            {{ __("Update your account's profile information and email address.") }}
+    <header class="mb-5">
+        <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-50">Profile information</h2>
+        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            Update your name, email, and daily calorie target.
         </p>
     </header>
 
@@ -13,57 +10,85 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}" class="space-y-5">
         @csrf
         @method('patch')
 
         <div>
             <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
+            <x-text-input id="name" name="name" type="text" class="mt-1.5 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
+            <x-input-error class="mt-1.5" :messages="$errors->get('name')" />
         </div>
 
         <div>
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+            <x-text-input id="email" name="email" type="email" class="mt-1.5 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
+            <x-input-error class="mt-1.5" :messages="$errors->get('email')" />
 
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-zinc-800 dark:text-zinc-200">
-                        {{ __('Your email address is unverified.') }}
-
-                        <button form="send-verification" class="underline text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:text-zinc-50 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
+            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail)
+                @if ($user->hasVerifiedEmail())
+                    <p class="mt-2 text-xs text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                        Verified
+                    </p>
+                @else
+                    <p class="text-xs mt-2 text-zinc-700 dark:text-zinc-300">
+                        Your email address is unverified.
+                        <button form="send-verification" class="text-emerald-600 dark:text-emerald-400 font-medium hover:underline">
+                            Resend verification email
                         </button>
                     </p>
-
                     @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
+                        <p class="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
+                            A new verification link has been sent to your email address.
                         </p>
                     @endif
-                </div>
+                @endif
             @endif
         </div>
 
-        <div>
-            <x-input-label for="daily_goal" :value="__('Daily Calorie Goal (kcal)')" />
-            <x-text-input id="daily_goal" name="daily_goal" type="number" min="500" max="10000" class="mt-1 block w-full" :value="old('daily_goal', $user->daily_goal ?? 2000)" required />
-            <x-input-error class="mt-2" :messages="$errors->get('daily_goal')" />
+        {{-- Daily goal — presets + custom field --}}
+        <div x-data="{ goal: '{{ old('daily_goal', $user->daily_goal ?? 2000) }}', presets: [1500, 2000, 2500, 3000] }">
+            <x-input-label for="daily_goal" :value="__('Daily calorie goal')" />
+
+            <div class="mt-1.5 flex items-center gap-2 flex-wrap">
+                <template x-for="p in presets" :key="p">
+                    <button type="button"
+                            @click="goal = p"
+                            :class="parseInt(goal) === p
+                                ? 'bg-emerald-600 text-white border-emerald-600'
+                                : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600'"
+                            class="font-mono text-xs px-3 py-1.5 rounded-lg border transition"
+                            x-text="p.toLocaleString()">
+                    </button>
+                </template>
+
+                <div class="relative flex-1 min-w-[140px]">
+                    <input id="daily_goal"
+                           name="daily_goal"
+                           type="number"
+                           min="500" max="10000"
+                           x-model="goal"
+                           required
+                           class="w-full pr-12 pl-3 py-1.5 font-mono text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 focus:border-emerald-500 focus:ring-emerald-500 rounded-lg shadow-sm transition"/>
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 dark:text-zinc-500 pointer-events-none">kcal</span>
+                </div>
+            </div>
+            <x-input-error class="mt-1.5" :messages="$errors->get('daily_goal')" />
+            <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-2">
+                Typical adult range is 1,800–2,500 depending on activity. The ring will warn at 80% and turn red over 100%.
+            </p>
         </div>
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
+        <div class="flex items-center gap-4 pt-1">
+            <x-primary-button>Save</x-primary-button>
 
             @if (session('status') === 'profile-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-zinc-600 dark:text-zinc-400"
-                >{{ __('Saved.') }}</p>
+                <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
+                   class="text-sm text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    Saved
+                </p>
             @endif
         </div>
     </form>

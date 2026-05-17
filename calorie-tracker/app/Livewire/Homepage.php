@@ -4,12 +4,14 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Livewire\Attributes\Rule;
+use App\Concerns\HasStreak;
 use App\Models\Entry;
 use App\Services\CalorieEstimator;
 use Illuminate\Support\Facades\RateLimiter;
 
 class Homepage extends Component
 {
+    use HasStreak;
     #[Rule('required|string|min:2|max:500')]
     public string $food = '';
 
@@ -17,8 +19,10 @@ class Homepage extends Component
     public int $protein = 0;
     public int $carbs = 0;
     public int $fat = 0;
+    public array $breakdown = [];
     public int $todayCalories = 0;
     public int $dailyGoal = 2000;
+    public int $streak = 0;
     public ?string $explanation = null;
 
     public ?int $editingId = null;
@@ -28,6 +32,7 @@ class Homepage extends Component
     {
         $this->dailyGoal     = auth()->check() ? (auth()->user()->daily_goal ?? 2000) : 2000;
         $this->todayCalories = $this->queryTodayCalories();
+        $this->streak        = $this->calculateStreak();
     }
 
     public function estimate(): void
@@ -50,6 +55,7 @@ class Homepage extends Component
             $this->protein     = $result['protein'];
             $this->carbs       = $result['carbs'];
             $this->fat         = $result['fat'];
+            $this->breakdown   = $result['breakdown'];
             $this->explanation = $result['explanation'];
         } catch (\Throwable $e) {
             $this->addError('food', 'Could not estimate calories. Please try again.');
@@ -76,7 +82,8 @@ class Homepage extends Component
         ]);
 
         $this->todayCalories = $this->queryTodayCalories();
-        $this->reset('food', 'calories', 'protein', 'carbs', 'fat', 'explanation');
+        $this->streak        = $this->calculateStreak();
+        $this->reset('food', 'calories', 'protein', 'carbs', 'fat', 'breakdown', 'explanation');
     }
 
     public function startEdit(int $id): void
@@ -135,6 +142,7 @@ class Homepage extends Component
             ->delete();
 
         $this->todayCalories = $this->queryTodayCalories();
+        $this->streak        = $this->calculateStreak();
     }
 
     private function queryTodayCalories(): int

@@ -33,7 +33,24 @@ class CalorieEstimator
             'carbs'       => max(0, (int) ($data['carbs'] ?? 0)),
             'fat'         => max(0, (int) ($data['fat'] ?? 0)),
             'explanation' => isset($data['explanation']) ? (string) $data['explanation'] : null,
+            'breakdown'   => $this->parseBreakdown($data['breakdown'] ?? []),
         ];
+    }
+
+    private function parseBreakdown(mixed $raw): array
+    {
+        if (!is_array($raw)) return [];
+
+        return array_values(array_filter(array_map(function ($item) {
+            if (!is_array($item) || !isset($item['text'])) return null;
+            return [
+                'text' => (string) ($item['text'] ?? ''),
+                'kcal' => max(0, (int) ($item['kcal'] ?? 0)),
+                'p'    => max(0, (int) ($item['p'] ?? 0)),
+                'c'    => max(0, (int) ($item['c'] ?? 0)),
+                'f'    => max(0, (int) ($item['f'] ?? 0)),
+            ];
+        }, $raw)));
     }
 
     private function buildPrompt(string $food): string
@@ -42,9 +59,18 @@ class CalorieEstimator
         Estimate the nutrition for the following food input and return a JSON object.
 
         Required schema:
-        {"calories": integer, "protein": integer, "carbs": integer, "fat": integer, "explanation": string}
+        {
+          "calories": integer,
+          "protein": integer,
+          "carbs": integer,
+          "fat": integer,
+          "explanation": string,
+          "breakdown": [{"text": string, "kcal": integer, "p": integer, "c": integer, "f": integer}]
+        }
 
         All numeric fields are integers. Protein, carbs, and fat are in grams.
+        The "breakdown" array has one entry per distinct food item or ingredient.
+        The sum of breakdown[].kcal should equal "calories".
 
         Rules:
         - Any edible item, meal, quantity, or restaurant reference is valid food.
@@ -55,10 +81,10 @@ class CalorieEstimator
 
         Examples:
         Input: 4 chicken breasts
-        Output: {"calories": 800, "protein": 120, "carbs": 0, "fat": 20, "explanation": "Assumed medium grilled chicken breasts (~200g each). Specify size or cooking method for a better estimate."}
+        Output: {"calories": 800, "protein": 120, "carbs": 0, "fat": 20, "explanation": "Assumed medium grilled chicken breasts (~200g each). Specify size or cooking method for a better estimate.", "breakdown": [{"text": "4 chicken breasts", "kcal": 800, "p": 120, "c": 0, "f": 20}]}
 
-        Input: large Big Mac meal
-        Output: {"calories": 1100, "protein": 45, "carbs": 120, "fat": 44, "explanation": "Assumed standard large Big Mac meal with large fries and a medium soft drink. Swapping the drink would change this significantly."}
+        Input: 2 eggs, toast with butter
+        Output: {"calories": 320, "protein": 15, "carbs": 15, "fat": 22, "explanation": "Assumed 2 large eggs scrambled, one slice of toast, and 1 tsp butter.", "breakdown": [{"text": "2 eggs", "kcal": 140, "p": 12, "c": 1, "f": 10}, {"text": "toast", "kcal": 80, "p": 3, "c": 14, "f": 1}, {"text": "butter", "kcal": 100, "p": 0, "c": 0, "f": 11}]}
 
         Input: {$food}
         Output:
