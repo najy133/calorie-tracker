@@ -1,0 +1,443 @@
+<div class="min-h-screen bg-gradient-to-b from-emerald-50 via-zinc-50 to-white dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-950 relative">
+
+    {{-- Ambient glow --}}
+    <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full"
+             style="background: radial-gradient(ellipse at center, rgb(16 185 129 / 0.08) 0%, transparent 70%);"></div>
+    </div>
+
+    {{-- Header --}}
+    <header class="relative z-10 flex items-center justify-between px-6 md:px-8 py-5">
+        <div class="flex items-center gap-2.5">
+            <x-brand-ring :size="28" :stroke="5" :progress="1" color="#059669" track-color="#d1fae5" />
+            <span class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Calorie Tracker</span>
+        </div>
+        @if($step === 'welcome')
+            <a href="{{ route('home') }}" class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition">Skip for now</a>
+        @endif
+    </header>
+
+    {{-- Progress bar (steps 1–4) --}}
+    @php
+        $stepNum = match($step) { 'details' => 1, 'activity' => 2, 'goal' => 3, 'calc', 'result' => 4, default => 0 };
+    @endphp
+    @if($stepNum > 0)
+        <div class="relative z-10 px-6 md:px-8 mb-1">
+            <div class="max-w-[560px] mx-auto">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-mono text-[11px] text-zinc-400 dark:text-zinc-500">STEP {{ $stepNum }} / 4</span>
+                </div>
+                <div class="h-1 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-700"
+                         style="width: {{ ($stepNum / 4) * 100 }}%"></div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Stage --}}
+    <main class="relative z-10 px-6 md:px-8 pb-16 pt-6">
+        <div class="max-w-[560px] mx-auto">
+
+            {{-- ── WELCOME ── --}}
+            @if($step === 'welcome')
+                <div class="step-in">
+                    <div class="mb-8">
+                        <x-brand-ring :size="56" :stroke="6" :progress="1" color="#059669" track-color="#d1fae5" />
+                    </div>
+                    <h1 class="font-serif text-4xl md:text-5xl text-zinc-900 dark:text-zinc-50 leading-tight tracking-tight mb-4">
+                        Welcome, {{ $name }}.
+                        <br>Let's set your
+                        <em class="text-emerald-600 not-italic">daily target.</em>
+                    </h1>
+                    <p class="text-zinc-500 dark:text-zinc-400 text-base leading-relaxed mb-10 max-w-sm">
+                        Calorie Tracker turns a sentence — "chicken bowl, large" — into calories and macros. First, two minutes to set your goal.
+                    </p>
+
+                    <div class="space-y-3">
+                        {{-- AI path --}}
+                        <button wire:click="chooseAi"
+                                class="w-full flex items-center justify-between gap-4 px-5 py-4 rounded-xl bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition group">
+                            <div class="text-start">
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <span class="text-sm font-semibold">Set up with AI</span>
+                                    <span class="font-mono text-[9px] font-semibold uppercase tracking-widest bg-emerald-500 text-white px-2 py-0.5 rounded-full">Recommended</span>
+                                </div>
+                                <p class="text-xs text-zinc-400 dark:text-zinc-500">Four quick questions. We calculate the rest.</p>
+                            </div>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform">
+                                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </button>
+
+                        {{-- Manual path --}}
+                        <button wire:click="chooseManual"
+                                class="w-full flex items-center justify-between gap-4 px-5 py-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-sm transition group">
+                            <div class="text-start">
+                                <p class="text-sm font-semibold mb-0.5">I'll configure it myself</p>
+                                <p class="text-xs text-zinc-400 dark:text-zinc-500">Go to profile and enter targets manually.</p>
+                            </div>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-40 group-hover:translate-x-0.5 transition-transform">
+                                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+            {{-- ── DETAILS ── --}}
+            @elseif($step === 'details')
+                <div class="step-in">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">A few measurements</p>
+                    <h1 class="font-serif text-3xl md:text-4xl text-zinc-900 dark:text-zinc-50 tracking-tight mb-2">Tell us about you.</h1>
+                    <p class="text-sm text-zinc-400 dark:text-zinc-500 mb-8">Used once to calculate your baseline — never shared or used elsewhere.</p>
+
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        {{-- Name (full width) --}}
+                        <div class="col-span-2">
+                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">Name</label>
+                            <input wire:model="name" type="text"
+                                   class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none transition" />
+                            @error('name') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Age --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">Age</label>
+                            <div class="relative">
+                                <input wire:model="age" type="number" min="13" max="100"
+                                       class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2.5 pr-10 text-sm font-mono text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none transition" />
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none">yrs</span>
+                            </div>
+                            @error('age') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Sex segmented --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">Biological sex</label>
+                            <div class="flex rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-0.5 gap-0.5">
+                                <button type="button" wire:click="$set('sex', 'F')"
+                                        class="flex-1 py-2 rounded-md text-xs font-semibold transition {{ $sex === 'F' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700' }}">
+                                    Female
+                                </button>
+                                <button type="button" wire:click="$set('sex', 'M')"
+                                        class="flex-1 py-2 rounded-md text-xs font-semibold transition {{ $sex === 'M' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700' }}">
+                                    Male
+                                </button>
+                            </div>
+                            @error('sex') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Weight --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">Current weight</label>
+                            <div class="relative">
+                                <input wire:model="weightKg" type="number" min="30" max="300" step="0.1"
+                                       class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2.5 pr-8 text-sm font-mono text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none transition" />
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none">kg</span>
+                            </div>
+                            @error('weightKg') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Height --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">Height</label>
+                            <div class="relative">
+                                <input wire:model="heightCm" type="number" min="100" max="230"
+                                       class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2.5 pr-8 text-sm font-mono text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none transition" />
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none">cm</span>
+                            </div>
+                            @error('heightCm') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+                    <button wire:click="next"
+                            class="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20">
+                        Continue
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                </div>
+
+            {{-- ── ACTIVITY ── --}}
+            @elseif($step === 'activity')
+                <div class="step-in">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">Activity level</p>
+                    <h1 class="font-serif text-3xl md:text-4xl text-zinc-900 dark:text-zinc-50 tracking-tight mb-2">How active are you?</h1>
+                    <p class="text-sm text-zinc-400 dark:text-zinc-500 mb-8">Roughly. We'll adjust as you log meals and weight over time.</p>
+
+                    @php
+                        $activities = [
+                            ['id' => 'sedentary', 'title' => 'Sedentary',         'sub' => 'Desk job, little or no exercise.',                    'mult' => '×1.2',   'icon' => 'M12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM9 7h6v6h-1v5h-1v-5h-2v5h-1v-5H9V7z'],
+                            ['id' => 'light',     'title' => 'Lightly active',    'sub' => 'Light walks or 1–2 workouts per week.',               'mult' => '×1.375', 'icon' => 'M13 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM10 21l2-7-3-2 2-5 4 2 3 3M9 14l-2 4'],
+                            ['id' => 'moderate',  'title' => 'Moderately active', 'sub' => 'Workouts 3–5 days a week, mostly on your feet.',       'mult' => '×1.55',  'icon' => 'M14 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM9 21l3-7-3-3 3-4 4 3-2 3 3 5M6 12l3-1'],
+                            ['id' => 'very',      'title' => 'Very active',       'sub' => 'Hard training 6–7 days a week or a physical job.',    'mult' => '×1.725', 'icon' => 'M15 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM6 12l3 1 2-3 3 2-2 4 3 5M14 9l3-2 3 1M4 20l4-2'],
+                        ];
+                    @endphp
+
+                    <div class="space-y-2.5 mb-8">
+                        @foreach($activities as $opt)
+                            <button type="button" wire:click="$set('activity', '{{ $opt['id'] }}')"
+                                    class="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border text-start transition hover:-translate-y-px
+                                        {{ $activity === $opt['id']
+                                            ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 ring-2 ring-emerald-500/10'
+                                            : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:shadow-sm' }}">
+                                <div class="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition
+                                    {{ $activity === $opt['id'] ? 'bg-emerald-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400' }}">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="{{ $opt['icon'] }}" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{{ $opt['title'] }}</span>
+                                        <span class="font-mono text-[10px] text-zinc-400 dark:text-zinc-500">{{ $opt['mult'] }}</span>
+                                    </div>
+                                    <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{{ $opt['sub'] }}</p>
+                                </div>
+                                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition
+                                    {{ $activity === $opt['id'] ? 'border-emerald-600 bg-emerald-600' : 'border-zinc-200 dark:border-zinc-600' }}">
+                                    @if($activity === $opt['id'])
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    @endif
+                                </div>
+                            </button>
+                        @endforeach
+                    </div>
+                    @error('activity') <p class="mb-4 text-xs text-rose-500">{{ $message }}</p> @enderror
+
+                    <div class="flex items-center gap-3">
+                        <button wire:click="back" class="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                            Back
+                        </button>
+                        <button wire:click="next"
+                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
+                                @disabled(!$activity)>
+                            Continue
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+            {{-- ── GOAL ── --}}
+            @elseif($step === 'goal')
+                <div class="step-in">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">Your goal</p>
+                    <h1 class="font-serif text-3xl md:text-4xl text-zinc-900 dark:text-zinc-50 tracking-tight mb-2">What are you aiming for?</h1>
+                    <p class="text-sm text-zinc-400 dark:text-zinc-500 mb-8">Shapes your daily calorie target and macro split. Change it anytime in Profile.</p>
+
+                    @php
+                        $goals = [
+                            ['id' => 'lose',     'title' => 'Lose weight',   'sub' => 'A gentle calorie deficit — about 0.5 kg per week.',       'delta' => '−500 kcal/day', 'icon' => 'M5 9l7 7 7-7M5 5h14'],
+                            ['id' => 'maintain', 'title' => 'Maintain',      'sub' => 'Hold steady at your current weight.',                     'delta' => '0',            'icon' => 'M4 9h16M4 15h16'],
+                            ['id' => 'build',    'title' => 'Build muscle',  'sub' => 'A small surplus paired with strength training.',          'delta' => '+300 kcal/day', 'icon' => 'M5 15l7-7 7 7M5 19h14'],
+                        ];
+                    @endphp
+
+                    <div class="space-y-2.5 mb-8">
+                        @foreach($goals as $opt)
+                            <button type="button" wire:click="$set('goal', '{{ $opt['id'] }}')"
+                                    class="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border text-start transition hover:-translate-y-px
+                                        {{ $goal === $opt['id']
+                                            ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 ring-2 ring-emerald-500/10'
+                                            : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:shadow-sm' }}">
+                                <div class="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition
+                                    {{ $goal === $opt['id'] ? 'bg-emerald-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400' }}">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="{{ $opt['icon'] }}" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{{ $opt['title'] }}</p>
+                                    <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{{ $opt['sub'] }}</p>
+                                </div>
+                                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition
+                                    {{ $goal === $opt['id'] ? 'border-emerald-600 bg-emerald-600' : 'border-zinc-200 dark:border-zinc-600' }}">
+                                    @if($goal === $opt['id'])
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    @endif
+                                </div>
+                            </button>
+                        @endforeach
+                    </div>
+                    @error('goal') <p class="mb-4 text-xs text-rose-500">{{ $message }}</p> @enderror
+
+                    <div class="flex items-center gap-3">
+                        <button wire:click="back" class="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                            Back
+                        </button>
+                        <button wire:click="next"
+                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
+                                @disabled(!$goal)>
+                            Calculate target
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+            {{-- ── CALCULATING ── --}}
+            @elseif($step === 'calc')
+                <div class="step-in flex flex-col items-center text-center py-12"
+                     x-data x-init="setTimeout(() => $wire.proceedAfterCalc(), 1700)">
+                    <div class="relative mb-6">
+                        <x-brand-ring :size="200" :stroke="12" :progress="0.65" color="#059669" track-color="#d1fae5" :pulse="true" />
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/>
+                                <path d="M19 14l.7 2.1L22 17l-2.3.9L19 20l-.7-2.1L16 17l2.3-.9z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="font-mono text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
+                        CALCULATING
+                        <span x-data="{ d: 0 }" x-init="setInterval(() => d = (d+1)%4, 400)"
+                              x-text="['', '●', '●●', '●●●'][d]" class="inline-block w-6 text-start"></span>
+                    </p>
+                    <p class="text-xs text-zinc-400 dark:text-zinc-600 mt-3 max-w-xs">
+                        Mifflin–St Jeor for BMR, your activity multiplier on top, then a goal-adjusted deficit or surplus.
+                    </p>
+                </div>
+
+            {{-- ── RESULT ── --}}
+            @elseif($step === 'result')
+                @php $final = $target + $adjust; @endphp
+                <div class="step-in">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-6 text-center">Your daily target</p>
+
+                    {{-- Ring --}}
+                    <div class="flex flex-col items-center mb-6">
+                        <div class="relative">
+                            <x-brand-ring :size="200" :stroke="12" :progress="1" color="#059669" track-color="#d1fae5" />
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span class="font-mono text-4xl font-bold text-zinc-900 dark:text-zinc-50 tabular-nums tracking-tight leading-none">
+                                    {{ number_format($final) }}
+                                </span>
+                                <span class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">kcal / day</span>
+                            </div>
+                        </div>
+
+                        {{-- Adjust pill --}}
+                        <div class="mt-4 inline-flex items-center gap-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-full px-3 py-2 shadow-sm">
+                            <button wire:click="adjust(-100)"
+                                    class="w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            </button>
+                            <span class="text-xs font-medium text-zinc-600 dark:text-zinc-400 min-w-[80px] text-center">
+                                @if($adjust === 0) Adjust ±100
+                                @elseif($adjust > 0) Adjusted +{{ $adjust }}
+                                @else Adjusted {{ $adjust }}
+                                @endif
+                            </span>
+                            <button wire:click="adjust(100)"
+                                    class="w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Macro split --}}
+                    @php
+                        $macroTotal = $protein + $carbs + $fat;
+                    @endphp
+                    <div class="grid grid-cols-3 gap-2.5 mb-5">
+                        @foreach([
+                            ['label' => 'P', 'name' => 'Protein', 'val' => $protein, 'color' => '#4f46e5', 'bg' => 'bg-indigo-500'],
+                            ['label' => 'C', 'name' => 'Carbs',   'val' => $carbs,   'color' => '#f59e0b', 'bg' => 'bg-amber-400'],
+                            ['label' => 'F', 'name' => 'Fat',     'val' => $fat,     'color' => '#f43f5e', 'bg' => 'bg-rose-500'],
+                        ] as $m)
+                            <div class="rounded-xl border border-zinc-100 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-3">
+                                <div class="flex items-center gap-1 mb-2">
+                                    <span class="text-xs font-bold" style="color: {{ $m['color'] }}">{{ $m['label'] }}</span>
+                                    <span class="text-xs text-zinc-400">{{ $m['name'] }}</span>
+                                </div>
+                                <p class="font-mono text-xl font-bold text-zinc-900 dark:text-zinc-50 leading-none mb-2">
+                                    {{ $m['val'] }}<small class="text-xs font-normal text-zinc-400 ms-0.5">g</small>
+                                </p>
+                                <div class="h-1 bg-zinc-100 dark:bg-zinc-700 rounded-full overflow-hidden">
+                                    <div class="{{ $m['bg'] }} h-full rounded-full transition-all duration-700"
+                                         style="width: {{ $macroTotal > 0 ? round($m['val'] / $macroTotal * 100) : 0 }}%"></div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    {{-- Explanation --}}
+                    <div class="flex items-start gap-2.5 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 mb-6">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0">
+                            <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/>
+                        </svg>
+                        <p class="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                            From <span class="font-mono font-semibold">{{ number_format($bmr) }}</span> kcal baseline (Mifflin–St Jeor)
+                            × {{ $activityName }} activity = <span class="font-mono font-semibold">{{ number_format($tdee) }}</span> kcal to maintain.
+                            Adjusted for "{{ $goal }}".
+                        </p>
+                    </div>
+
+                    {{-- Confirm --}}
+                    <button wire:click="confirm"
+                            class="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 mb-3">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Start tracking
+                    </button>
+                    <div class="text-center">
+                        <button wire:click="back" class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
+                            ← Back
+                        </button>
+                    </div>
+                </div>
+
+            {{-- ── MANUAL EXIT ── --}}
+            @elseif($step === 'manual')
+                <div class="step-in flex flex-col items-center text-center py-12">
+                    <div class="relative mb-6">
+                        <x-brand-ring :size="160" :stroke="10" :progress="0.4" color="#3f3f46" track-color="#e4e4e7" />
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#71717a" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h2 class="font-serif text-2xl text-zinc-900 dark:text-zinc-50 mb-2">Configure it your way.</h2>
+                    <p class="text-sm text-zinc-400 dark:text-zinc-500 max-w-xs mb-8">
+                        We'll drop you into your profile. Set your daily calorie target manually — change it anytime.
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <button wire:click="$set('step', 'welcome')"
+                                class="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                            Change my mind
+                        </button>
+                        <button wire:click="chooseManual"
+                                class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition">
+                            Take me to profile
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+            {{-- ── DONE ── --}}
+            @elseif($step === 'done')
+                @php $finalTarget = $target + $adjust; @endphp
+                <div class="step-in flex flex-col items-center text-center py-12"
+                     x-data x-init="setTimeout(() => $wire.redirect('{{ route('home') }}'), 1200)">
+                    <div class="relative mb-6">
+                        <x-brand-ring :size="200" :stroke="12" :progress="1" color="#059669" track-color="#d1fae5" />
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h2 class="font-serif text-3xl text-zinc-900 dark:text-zinc-50 mb-2">You're set, {{ explode(' ', $name)[0] }}.</h2>
+                    <p class="text-sm text-zinc-400 dark:text-zinc-500">
+                        Daily target locked at <span class="font-mono font-semibold text-zinc-700 dark:text-zinc-300">{{ number_format($finalTarget) }} kcal</span>.
+                        Log your first meal whenever you're ready.
+                    </p>
+                </div>
+
+            @endif
+
+        </div>
+    </main>
+
+</div>

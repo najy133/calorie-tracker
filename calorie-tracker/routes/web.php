@@ -2,6 +2,7 @@
 
 use App\Livewire\Homepage;
 use App\Livewire\Dashboard;
+use App\Livewire\Onboarding;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +12,8 @@ Route::get('/', function () {
 });
 
 Route::get('/home', Homepage::class)->name('home');
+
+Route::get('/onboarding', Onboarding::class)->middleware('auth')->name('onboarding');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
