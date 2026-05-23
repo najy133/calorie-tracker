@@ -1,9 +1,6 @@
 <x-app-layout>
     <div class="mx-auto max-w-3xl px-6 md:px-10 py-8 space-y-8">
 
-        {{-- ─────────────────────────────────────────────
-             Hero — avatar + name + meta
-             ───────────────────────────────────────────── --}}
         @php
             $user        = auth()->user();
             $initial     = mb_strtoupper(mb_substr($user->name ?? '?', 0, 1));
@@ -19,38 +16,28 @@
                 <p class="text-base font-semibold text-zinc-900 dark:text-zinc-50 truncate">{{ $user->name }}</p>
                 <p class="text-sm text-zinc-500 dark:text-zinc-400 truncate">{{ $user->email }}</p>
                 <p class="font-mono text-[11px] uppercase tracking-wider text-zinc-400 dark:text-zinc-600 mt-1">
-                    @if($memberSince)Member since {{ $memberSince }}@endif
-                    @if($streak > 0) <span class="text-amber-600 dark:text-amber-400">· 🔥 {{ $streak }}-day streak</span>@endif
+                    @if($memberSince){{ __('Member since') }} {{ $memberSince }}@endif
+                    @if($streak > 0) <span class="text-amber-600 dark:text-amber-400">· 🔥 {{ __(':count-day streak', ['count' => $streak]) }}</span>@endif
                 </p>
             </div>
         </header>
 
-        {{-- ─────────────────────────────────────────────
-             ACCOUNT
-             ───────────────────────────────────────────── --}}
         <section>
-            <p class="text-[11px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3 px-1">Account</p>
+            <p class="text-[11px] font-semibold uppercase tracking-widest rtl:tracking-normal text-zinc-400 dark:text-zinc-500 mb-3 px-1">{{ __('Account') }}</p>
             <div class="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
                 @include('profile.partials.update-profile-information-form')
             </div>
         </section>
 
-        {{-- ─────────────────────────────────────────────
-             SECURITY
-             ───────────────────────────────────────────── --}}
         <section>
-            <p class="text-[11px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3 px-1">Security</p>
+            <p class="text-[11px] font-semibold uppercase tracking-widest rtl:tracking-normal text-zinc-400 dark:text-zinc-500 mb-3 px-1">{{ __('Security') }}</p>
             <div class="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
                 @include('profile.partials.update-password-form')
             </div>
         </section>
 
-        {{-- ─────────────────────────────────────────────
-             DANGER ZONE — visually demoted: lighter card,
-             smaller heading, soft danger button.
-             ───────────────────────────────────────────── --}}
         <section>
-            <p class="text-[11px] font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mb-3 px-1">Danger zone</p>
+            <p class="text-[11px] font-semibold uppercase tracking-widest rtl:tracking-normal text-zinc-400 dark:text-zinc-500 mb-3 px-1">{{ __('Danger zone') }}</p>
             <div class="rounded-2xl bg-zinc-50/60 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 p-5">
                 @include('profile.partials.delete-user-form')
             </div>

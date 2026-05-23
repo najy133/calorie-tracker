@@ -1,6 +1,6 @@
 <x-guest-layout>
-    <h2 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 mb-1">Welcome back</h2>
-    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Log in to track your calories</p>
+    <h2 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 mb-1">{{ __('Welcome back') }}</h2>
+    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-8">{{ __('Log in to track your calories') }}</p>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -40,9 +40,9 @@
         </x-primary-button>
 
         <p class="text-center text-sm text-zinc-500 dark:text-zinc-400">
-            Don't have an account?
+            {{ __('Don\'t have an account?') }}
             <a href="{{ route('register') }}" class="text-emerald-600 dark:text-emerald-400 font-medium hover:underline">
-                Sign up free
+                {{ __('Sign up free') }}
             </a>
         </p>
     </form>

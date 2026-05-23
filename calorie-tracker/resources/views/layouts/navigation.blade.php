@@ -14,17 +14,27 @@
             <div class="flex items-center">
                 @auth
                     <a href="{{ route('dashboard') }}" class="text-base font-semibold text-zinc-900 dark:text-zinc-50 tracking-tight hover:text-emerald-600 dark:hover:text-emerald-400 transition">
-                        Calorie Tracker
+                        {{ __('Calorie Tracker') }}
                     </a>
                 @else
                     <a href="{{ route('home') }}" class="text-base font-semibold text-zinc-900 dark:text-zinc-50 tracking-tight hover:text-emerald-600 dark:hover:text-emerald-400 transition">
-                        Calorie Tracker
+                        {{ __('Calorie Tracker') }}
                     </a>
                 @endauth
             </div>
 
             {{-- Desktop right side --}}
             <div class="hidden sm:flex sm:items-center gap-3">
+
+                {{-- Language toggle --}}
+                <form method="POST" action="{{ route('locale.switch') }}">
+                    @csrf
+                    <input type="hidden" name="locale" value="{{ app()->getLocale() === 'ar' ? 'en' : 'ar' }}">
+                    <button type="submit"
+                            class="px-2.5 py-1 rounded-md text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition tracking-wide">
+                        {{ app()->getLocale() === 'ar' ? 'EN' : 'عربي' }}
+                    </button>
+                </form>
 
                 {{-- Dark mode toggle --}}
                 <button @click="toggle()"
@@ -41,40 +51,51 @@
                 @auth
                     <a href="{{ route('dashboard') }}"
                        class="text-sm {{ request()->routeIs('dashboard') ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100' }} transition">
-                        Dashboard
+                        {{ __('Dashboard') }}
                     </a>
 
                     <a href="{{ route('home') }}"
                        class="inline-flex items-center px-3.5 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 transition">
-                        Log Meal
+                        {{ __('Log Meal') }}
                     </a>
 
                     <a href="{{ route('profile.edit') }}"
                        class="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition">
-                        Profile
+                        {{ __('Profile') }}
                     </a>
 
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"
                                 class="text-sm text-zinc-500 dark:text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 transition">
-                            Log out
+                            {{ __('Log out') }}
                         </button>
                     </form>
                 @else
                     <a href="{{ route('login') }}"
                        class="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition">
-                        Log in
+                        {{ __('Log in') }}
                     </a>
                     <a href="{{ route('register') }}"
                        class="inline-flex items-center px-3.5 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 transition">
-                        Sign up free
+                        {{ __('Sign up free') }}
                     </a>
                 @endauth
             </div>
 
             {{-- Mobile: toggle + hamburger --}}
             <div class="-me-2 flex items-center gap-1 sm:hidden">
+
+                {{-- Language toggle (mobile) --}}
+                <form method="POST" action="{{ route('locale.switch') }}">
+                    @csrf
+                    <input type="hidden" name="locale" value="{{ app()->getLocale() === 'ar' ? 'en' : 'ar' }}">
+                    <button type="submit"
+                            class="px-2 py-1.5 rounded-md text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition">
+                        {{ app()->getLocale() === 'ar' ? 'EN' : 'عربي' }}
+                    </button>
+                </form>
+
                 <button @click="toggle()"
                         class="p-2 rounded-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition">
                     <svg x-show="dark" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -106,33 +127,33 @@
             @auth
                 <a href="{{ route('dashboard') }}"
                    class="block text-sm {{ request()->routeIs('dashboard') ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100' }} transition">
-                    Dashboard
+                    {{ __('Dashboard') }}
                 </a>
 
                 <a href="{{ route('home') }}"
                    class="block text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition">
-                    Log Meal
+                    {{ __('Log Meal') }}
                 </a>
 
                 <a href="{{ route('profile.edit') }}"
                    class="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition">
-                    Profile
+                    {{ __('Profile') }}
                 </a>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="text-sm text-zinc-600 dark:text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 transition">
-                        Log out
+                        {{ __('Log out') }}
                     </button>
                 </form>
             @else
                 <a href="{{ route('login') }}"
                    class="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition">
-                    Log in
+                    {{ __('Log in') }}
                 </a>
                 <a href="{{ route('register') }}"
                    class="block text-sm text-emerald-600 dark:text-emerald-400 font-medium hover:text-emerald-700 transition">
-                    Sign up free
+                    {{ __('Sign up free') }}
                 </a>
             @endauth
         </div>

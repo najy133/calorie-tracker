@@ -1,8 +1,8 @@
 <section>
     <header class="mb-5">
-        <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-50">Profile information</h2>
+        <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-50">{{ __('Profile information') }}</h2>
         <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Update your name, email, and daily calorie target.
+            {{ __('Update your name, email, and daily calorie target.') }}
         </p>
     </header>
 
@@ -29,18 +29,18 @@
                 @if ($user->hasVerifiedEmail())
                     <p class="mt-2 text-xs text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
                         <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                        Verified
+                        {{ __('Verified') }}
                     </p>
                 @else
                     <p class="text-xs mt-2 text-zinc-700 dark:text-zinc-300">
-                        Your email address is unverified.
+                        {{ __('Your email address is unverified.') }}
                         <button form="send-verification" class="text-emerald-600 dark:text-emerald-400 font-medium hover:underline">
-                            Resend verification email
+                            {{ __('Resend verification email') }}
                         </button>
                     </p>
                     @if (session('status') === 'verification-link-sent')
                         <p class="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
-                            A new verification link has been sent to your email address.
+                            {{ __('A new verification link has been sent to your email address.') }}
                         </p>
                     @endif
                 @endif
@@ -70,24 +70,24 @@
                            min="500" max="10000"
                            x-model="goal"
                            required
-                           class="w-full pr-12 pl-3 py-1.5 font-mono text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 focus:border-emerald-500 focus:ring-emerald-500 rounded-lg shadow-sm transition"/>
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 dark:text-zinc-500 pointer-events-none">kcal</span>
+                           class="w-full pe-12 ps-3 py-1.5 font-mono text-sm border-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 focus:border-emerald-500 focus:ring-emerald-500 rounded-lg shadow-sm transition"/>
+                    <span class="absolute end-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 dark:text-zinc-500 pointer-events-none">kcal</span>
                 </div>
             </div>
             <x-input-error class="mt-1.5" :messages="$errors->get('daily_goal')" />
             <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-2">
-                Typical adult range is 1,800–2,500 depending on activity. The ring will warn at 80% and turn red over 100%.
+                {{ __('Typical adult range is 1,800–2,500 depending on activity. The ring will warn at 80% and turn red over 100%.') }}
             </p>
         </div>
 
         <div class="flex items-center gap-4 pt-1">
-            <x-primary-button>Save</x-primary-button>
+            <x-primary-button>{{ __('Save') }}</x-primary-button>
 
             @if (session('status') === 'profile-updated')
                 <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
                    class="text-sm text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
                     <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                    Saved
+                    {{ __('Saved') }}
                 </p>
             @endif
         </div>

@@ -12,12 +12,12 @@ class CalorieEstimator
      * @return array{calories: int, protein: int, carbs: int, fat: int, explanation: string|null}
      * @throws RuntimeException
      */
-    public function estimate(string $food): array
+    public function estimate(string $food, string $locale = 'en'): array
     {
         $response = Prism::text()
             ->using(Provider::OpenAI, 'gpt-4o-mini')
             ->withSystemPrompt('You are a nutrition expert. Always respond with valid JSON only — no markdown, no code fences, no extra text.')
-            ->withPrompt($this->buildPrompt($food))
+            ->withPrompt($this->buildPrompt($food, $locale))
             ->asText()
             ->text;
 
@@ -53,8 +53,12 @@ class CalorieEstimator
         }, $raw)));
     }
 
-    private function buildPrompt(string $food): string
+    private function buildPrompt(string $food, string $locale = 'en'): string
     {
+        $langNote = $locale === 'ar'
+            ? "\n        - Write the explanation field in Arabic."
+            : '';
+
         return <<<PROMPT
         Estimate the nutrition for the following food input and return a JSON object.
 
@@ -77,7 +81,7 @@ class CalorieEstimator
         - Treat branded meals and fast food as valid (even if misspelled or regional).
         - If quantity or preparation details are missing, assume a standard single serving.
         - If a known food item is mentioned, estimate it regardless of brand name.
-        - The explanation must: (1) state the assumption made about serving size or preparation, (2) mention in one short sentence what extra detail would improve accuracy.
+        - The explanation must: (1) state the assumption made about serving size or preparation, (2) mention in one short sentence what extra detail would improve accuracy.{$langNote}
 
         Examples:
         Input: 4 chicken breasts

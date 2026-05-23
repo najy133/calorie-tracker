@@ -13,6 +13,11 @@
     --font-mono: 'DM Mono', ui-monospace, 'Courier New', monospace;
 }
 
+[dir="rtl"] {
+    --font-sans: 'Cairo', ui-sans-serif, system-ui, sans-serif;
+    --font-serif: 'Cairo', ui-sans-serif, system-ui, sans-serif;
+}
+
 @keyframes float-food {
     0%, 100% { transform: translateY(0px) rotate(-4deg) scale(1); }
     33%       { transform: translateY(-14px) rotate(2deg) scale(1.05); }
