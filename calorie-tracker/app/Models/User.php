@@ -48,6 +48,13 @@ class User extends Authenticatable
         'email',
         'password',
         'daily_goal',
+        'age',
+        'sex',
+        'weight_kg',
+        'height_cm',
+        'activity_level',
+        'goal',
+        'onboarded_at',
     ];
 
     /**
@@ -71,6 +78,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
             'daily_goal'        => 'integer',
+            'age'               => 'integer',
+            'height_cm'         => 'integer',
+            'weight_kg'         => 'decimal:2',
+            'onboarded_at'      => 'datetime',
         ];
     }
 

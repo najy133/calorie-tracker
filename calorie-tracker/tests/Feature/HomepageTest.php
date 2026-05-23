@@ -29,9 +29,9 @@ it('shows zero calories for guests on mount', function () {
 it('allows guests to estimate without auth', function () {
     $this->mock(CalorieEstimator::class)
         ->shouldReceive('estimate')
-        ->with('an apple')
+        ->with('an apple', \Mockery::any())
         ->once()
-        ->andReturn(['calories' => 95, 'explanation' => 'Assumed one medium apple.']);
+        ->andReturn(['calories' => 95, 'protein' => 0, 'carbs' => 25, 'fat' => 0, 'explanation' => 'Assumed one medium apple.', 'breakdown' => []]);
 
     Livewire::test(Homepage::class)
         ->set('food', 'an apple')
@@ -103,7 +103,7 @@ it('loads todayEntries in descending order on mount', function () {
 it('estimates calories using the AI service', function () {
     $this->mock(CalorieEstimator::class)
         ->shouldReceive('estimate')
-        ->with('2 scrambled eggs')
+        ->with('2 scrambled eggs', \Mockery::any())
         ->once()
         ->andReturn(['calories' => 180, 'protein' => 12, 'carbs' => 1, 'fat' => 14, 'explanation' => 'Assumed two large eggs, scrambled in butter.', 'breakdown' => []]);
 
