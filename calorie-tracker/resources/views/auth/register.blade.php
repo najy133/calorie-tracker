@@ -1,6 +1,6 @@
 <x-guest-layout>
-    <h2 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 mb-1">Create your account</h2>
-    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Start tracking your nutrition today</p>
+    <h2 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-50 mb-1">{{ __('Create your account') }}</h2>
+    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-8">{{ __('Start tracking your nutrition today') }}</p>
 
     <form method="POST" action="{{ route('register') }}" class="space-y-5">
         @csrf
@@ -34,9 +34,9 @@
         </x-primary-button>
 
         <p class="text-center text-sm text-zinc-500 dark:text-zinc-400">
-            Already have an account?
+            {{ __('Already have an account?') }}
             <a href="{{ route('login') }}" class="text-emerald-600 dark:text-emerald-400 font-medium hover:underline">
-                Log in
+                {{ __('Log in') }}
             </a>
         </p>
     </form>

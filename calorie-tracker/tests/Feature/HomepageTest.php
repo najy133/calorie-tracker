@@ -105,7 +105,7 @@ it('estimates calories using the AI service', function () {
         ->shouldReceive('estimate')
         ->with('2 scrambled eggs')
         ->once()
-        ->andReturn(['calories' => 180, 'protein' => 12, 'carbs' => 1, 'fat' => 14, 'explanation' => 'Assumed two large eggs, scrambled in butter.']);
+        ->andReturn(['calories' => 180, 'protein' => 12, 'carbs' => 1, 'fat' => 14, 'explanation' => 'Assumed two large eggs, scrambled in butter.', 'breakdown' => []]);
 
     Livewire::test(Homepage::class)
         ->set('food', '2 scrambled eggs')

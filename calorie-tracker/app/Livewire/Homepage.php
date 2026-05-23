@@ -43,14 +43,14 @@ class Homepage extends Component
 
         if (RateLimiter::tooManyAttempts($key, maxAttempts: 10)) {
             $seconds = RateLimiter::availableIn($key);
-            $this->addError('food', "Too many requests. Please wait {$seconds} seconds.");
+            $this->addError('food', __('Too many requests. Please wait :seconds seconds.', ['seconds' => $seconds]));
             return;
         }
 
         RateLimiter::hit($key, decaySeconds: 60);
 
         try {
-            $result = app(CalorieEstimator::class)->estimate($this->food);
+            $result = app(CalorieEstimator::class)->estimate($this->food, app()->getLocale());
             $this->calories    = $result['calories'];
             $this->protein     = $result['protein'];
             $this->carbs       = $result['carbs'];
@@ -58,7 +58,7 @@ class Homepage extends Component
             $this->breakdown   = $result['breakdown'];
             $this->explanation = $result['explanation'];
         } catch (\Throwable $e) {
-            $this->addError('food', 'Could not estimate calories. Please try again.');
+            $this->addError('food', __('Could not estimate calories. Please try again.'));
             \Log::error('CalorieEstimator failed', ['error' => $e->getMessage(), 'food' => $this->food]);
         }
     }
@@ -102,14 +102,14 @@ class Homepage extends Component
 
         if (RateLimiter::tooManyAttempts($key, maxAttempts: 10)) {
             $seconds = RateLimiter::availableIn($key);
-            $this->addError('editFood', "Too many requests. Please wait {$seconds} seconds.");
+            $this->addError('editFood', __('Too many requests. Please wait :seconds seconds.', ['seconds' => $seconds]));
             return;
         }
 
         RateLimiter::hit($key, decaySeconds: 60);
 
         try {
-            $result = app(CalorieEstimator::class)->estimate($this->editFood);
+            $result = app(CalorieEstimator::class)->estimate($this->editFood, app()->getLocale());
 
             Entry::where('id', $this->editingId)
                 ->where('user_id', auth()->id())
@@ -124,7 +124,7 @@ class Homepage extends Component
             $this->todayCalories = $this->queryTodayCalories();
             $this->cancelEdit();
         } catch (\Throwable $e) {
-            $this->addError('editFood', 'Could not estimate calories. Please try again.');
+            $this->addError('editFood', __('Could not estimate calories. Please try again.'));
             \Log::error('CalorieEstimator failed on edit', ['error' => $e->getMessage(), 'food' => $this->editFood]);
         }
     }

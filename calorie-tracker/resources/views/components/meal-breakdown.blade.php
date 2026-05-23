@@ -1,20 +1,92 @@
-{{--
-    <x-meal-breakdown/>
-    -------------------------------------------------------------
-    Animated "Type a meal → watch it become numbers" section.
+@php
+$isAr = app()->getLocale() === 'ar';
 
-    Self-contained. Drop this file into:
-        resources/views/components/meal-breakdown.blade.php
-
-    Then use anywhere as:
-        <x-meal-breakdown/>
-
-    Requires:
-      - Alpine.js (already installed)
-      - Tailwind classes (already configured)
-      - The four @keyframes / .bd-* rules from breakdown-keyframes.css
-        appended to resources/css/app.css
---}}
+/*
+ * Each meal: sentence string + phrases with 0-indexed char offsets into that string.
+ * Arabic offsets verified char-by-char (Arabic letters are all BMP, so JS slice() counts work identically).
+ *
+ * Meal 1 AR "بيضتان، خبز محمص بالزبدة"
+ *   بيضتان(0-5)، (6-7) خبز محمص(8-15) (16) بالزبدة(17-23)
+ *
+ * Meal 2 AR "دجاج مشوي و أرز"
+ *   دجاج مشوي(0-8) (9) و (10) (11) أرز(12-14)
+ *
+ * Meal 3 AR "لاتيه بارد مع حليب الشوفان"
+ *   لاتيه بارد(0-9) (10) مع (11-12) (13) حليب الشوفان(14-25)
+ *
+ * Meal 4 AR "بوريتو بول، دجاج مضاعف"
+ *   بوريتو بول(0-9)، (10-11) دجاج مضاعف(12-21)
+ */
+$meals = $isAr ? [
+    [
+        'sentence' => 'بيضتان، خبز محمص بالزبدة',
+        'phrases'  => [
+            ['text' => 'بيضتان',  'start' => 0,  'len' => 6, 'kcal' => 140, 'p' => 12, 'c' => 1,  'f' => 10],
+            ['text' => 'خبز محمص','start' => 8,  'len' => 8, 'kcal' => 80,  'p' => 3,  'c' => 14, 'f' => 1 ],
+            ['text' => 'بالزبدة', 'start' => 17, 'len' => 7, 'kcal' => 100, 'p' => 0,  'c' => 0,  'f' => 11],
+        ],
+        'total' => ['kcal' => 320, 'p' => 15, 'c' => 15, 'f' => 22],
+    ],
+    [
+        'sentence' => 'دجاج مشوي و أرز',
+        'phrases'  => [
+            ['text' => 'دجاج مشوي', 'start' => 0,  'len' => 9, 'kcal' => 280, 'p' => 50, 'c' => 2, 'f' => 6],
+            ['text' => 'أرز',       'start' => 12, 'len' => 3, 'kcal' => 300, 'p' => 5,  'c' => 63, 'f' => 1],
+        ],
+        'total' => ['kcal' => 580, 'p' => 55, 'c' => 65, 'f' => 7],
+    ],
+    [
+        'sentence' => 'لاتيه بارد مع حليب الشوفان',
+        'phrases'  => [
+            ['text' => 'لاتيه بارد',   'start' => 0,  'len' => 10, 'kcal' => 80, 'p' => 4, 'c' => 8,  'f' => 4],
+            ['text' => 'حليب الشوفان', 'start' => 14, 'len' => 12, 'kcal' => 60, 'p' => 2, 'c' => 10, 'f' => 2],
+        ],
+        'total' => ['kcal' => 140, 'p' => 6, 'c' => 18, 'f' => 6],
+    ],
+    [
+        'sentence' => 'بوريتو بول، دجاج مضاعف',
+        'phrases'  => [
+            ['text' => 'بوريتو بول', 'start' => 0,  'len' => 10, 'kcal' => 480, 'p' => 22, 'c' => 75, 'f' => 12],
+            ['text' => 'دجاج مضاعف', 'start' => 12, 'len' => 10, 'kcal' => 300, 'p' => 56, 'c' => 3,  'f' => 7 ],
+        ],
+        'total' => ['kcal' => 780, 'p' => 78, 'c' => 78, 'f' => 19],
+    ],
+] : [
+    [
+        'sentence' => '2 eggs, toast with butter',
+        'phrases'  => [
+            ['text' => '2 eggs', 'start' => 0,  'len' => 6, 'kcal' => 140, 'p' => 12, 'c' => 1,  'f' => 10],
+            ['text' => 'toast',  'start' => 8,  'len' => 5, 'kcal' => 80,  'p' => 3,  'c' => 14, 'f' => 1 ],
+            ['text' => 'butter', 'start' => 19, 'len' => 6, 'kcal' => 100, 'p' => 0,  'c' => 0,  'f' => 11],
+        ],
+        'total' => ['kcal' => 320, 'p' => 15, 'c' => 15, 'f' => 22],
+    ],
+    [
+        'sentence' => 'grilled chicken & rice',
+        'phrases'  => [
+            ['text' => 'grilled chicken', 'start' => 0,  'len' => 15, 'kcal' => 280, 'p' => 50, 'c' => 2,  'f' => 6],
+            ['text' => 'rice',            'start' => 18, 'len' => 4,  'kcal' => 300, 'p' => 5,  'c' => 63, 'f' => 1],
+        ],
+        'total' => ['kcal' => 580, 'p' => 55, 'c' => 65, 'f' => 7],
+    ],
+    [
+        'sentence' => 'iced latte with oat milk',
+        'phrases'  => [
+            ['text' => 'iced latte', 'start' => 0,  'len' => 10, 'kcal' => 80, 'p' => 4, 'c' => 8,  'f' => 4],
+            ['text' => 'oat milk',  'start' => 16, 'len' => 8,  'kcal' => 60, 'p' => 2, 'c' => 10, 'f' => 2],
+        ],
+        'total' => ['kcal' => 140, 'p' => 6, 'c' => 18, 'f' => 6],
+    ],
+    [
+        'sentence' => 'burrito bowl, double chicken',
+        'phrases'  => [
+            ['text' => 'burrito bowl',   'start' => 0,  'len' => 12, 'kcal' => 480, 'p' => 22, 'c' => 75, 'f' => 12],
+            ['text' => 'double chicken', 'start' => 14, 'len' => 14, 'kcal' => 300, 'p' => 56, 'c' => 3,  'f' => 7 ],
+        ],
+        'total' => ['kcal' => 780, 'p' => 78, 'c' => 78, 'f' => 19],
+    ],
+];
+@endphp
 
 <section
     class="bg-zinc-950 text-zinc-50 py-24 md:py-32 relative overflow-hidden"
@@ -35,15 +107,15 @@
 
         {{-- Heading --}}
         <header class="text-center mb-14">
-            <p class="text-xs font-semibold text-emerald-400 uppercase tracking-widest">How it works</p>
+            <p class="text-xs font-semibold text-emerald-400 uppercase tracking-widest rtl:tracking-normal">{{ __('How it works') }}</p>
             <h2 class="font-serif text-4xl md:text-5xl text-white mt-3 leading-tight tracking-tight">
-                Type a meal.<br>Watch it become numbers.
+                {{ __('Type a meal.') }}<br>{{ __('Watch it become numbers.') }}
             </h2>
         </header>
 
         {{-- Stage --}}
         <div
-            class="max-w-2xl mx-auto transition-opacity duration-500"
+            class="max-w-2xl mx-auto transition-opacity duration-500 min-h-[480px]"
             :class="fading ? 'opacity-0' : 'opacity-100'"
             aria-live="polite"
         >
@@ -74,7 +146,7 @@
                 :class="showAi ? 'opacity-100' : 'opacity-0'"
             >
                 <span class="bd-sparkle">✨</span>
-                <span x-text="phase === 'estimating' ? 'Estimating…' : 'Estimated'"></span>
+                <span x-text="phase === 'estimating' ? '{{ __('Estimating…') }}' : '{{ __('Estimated') }}'"></span>
             </div>
 
             {{-- Phrase cards --}}
@@ -92,12 +164,12 @@
                             <span class="w-2 h-2 rounded-full" :style="'background:' + macroColor(ph)"></span>
                         </div>
                         <div class="font-mono text-2xl font-bold text-white leading-none mb-2 tabular-nums">
-                            <span x-text="ph.kcal"></span><small class="font-sans text-[11px] font-medium text-zinc-500 ml-1">kcal</small>
+                            <span x-text="ph.kcal"></span><small class="font-sans text-[11px] font-medium text-zinc-500 ms-1">kcal</small>
                         </div>
                         <div class="flex gap-2.5 font-mono text-[11px] tabular-nums">
-                            <template x-if="ph.p > 0"><span class="text-indigo-300" x-text="'P'+ph.p+'g'"></span></template>
-                            <template x-if="ph.c > 0"><span class="text-amber-300" x-text="'C'+ph.c+'g'"></span></template>
-                            <template x-if="ph.f > 0"><span class="text-rose-300" x-text="'F'+ph.f+'g'"></span></template>
+                            <template x-if="ph.p > 0"><span class="text-indigo-300" x-text="_P+ph.p+'g'"></span></template>
+                            <template x-if="ph.c > 0"><span class="text-amber-300" x-text="_C+ph.c+'g'"></span></template>
+                            <template x-if="ph.f > 0"><span class="text-rose-300" x-text="_F+ph.f+'g'"></span></template>
                         </div>
                     </div>
                 </template>
@@ -113,56 +185,25 @@
                     <span x-text="meal.total.kcal.toLocaleString()"></span>
                     <small class="font-sans text-sm font-medium text-zinc-500">kcal</small>
                 </div>
-                <div class="ml-auto flex gap-4 font-mono text-sm font-semibold tabular-nums">
-                    <span class="text-indigo-300" x-text="'P'+meal.total.p+'g'"></span>
-                    <span class="text-amber-300" x-text="'C'+meal.total.c+'g'"></span>
-                    <span class="text-rose-300" x-text="'F'+meal.total.f+'g'"></span>
+                <div class="ms-auto flex gap-4 font-mono text-sm font-semibold tabular-nums">
+                    <span class="text-indigo-300" x-text="_P+meal.total.p+'g'"></span>
+                    <span class="text-amber-300" x-text="_C+meal.total.c+'g'"></span>
+                    <span class="text-rose-300" x-text="_F+meal.total.f+'g'"></span>
                 </div>
             </div>
         </div>
 
         <p class="text-center text-sm text-zinc-500 mt-16">
-            No barcode, no database. Just a sentence and the answer.
+            {{ __('No barcode, no database. Just a sentence and the answer.') }}
         </p>
     </div>
 
-    {{-- Alpine.js data + state machine. Inline to keep the component self-contained. --}}
     <script>
+        const _P = '{{ __('P') }}', _C = '{{ __('C') }}', _F = '{{ __('F') }}';
+
         function mealBreakdown() {
             return {
-                /* ---- DATA — edit / extend this list to add more meals ----
-                   start / len are 0-indexed character offsets into the sentence.
-                   total.kcal should equal sum(phrases[].kcal). */
-                meals: [
-                    { sentence: '2 eggs, toast with butter',
-                      phrases: [
-                          { text: '2 eggs', start: 0,  len: 6, kcal: 140, p: 12, c: 1,  f: 10 },
-                          { text: 'toast',  start: 8,  len: 5, kcal: 80,  p: 3,  c: 14, f: 1  },
-                          { text: 'butter', start: 19, len: 6, kcal: 100, p: 0,  c: 0,  f: 11 },
-                      ],
-                      total: { kcal: 320, p: 15, c: 15, f: 22 } },
-
-                    { sentence: 'grilled chicken & rice',
-                      phrases: [
-                          { text: 'grilled chicken', start: 0,  len: 15, kcal: 280, p: 50, c: 0,  f: 6 },
-                          { text: 'rice',            start: 18, len: 4,  kcal: 300, p: 5,  c: 65, f: 1 },
-                      ],
-                      total: { kcal: 580, p: 55, c: 65, f: 7 } },
-
-                    { sentence: 'iced latte with oat milk',
-                      phrases: [
-                          { text: 'iced latte', start: 0,  len: 10, kcal: 80, p: 4, c: 8,  f: 4 },
-                          { text: 'oat milk',   start: 16, len: 8,  kcal: 60, p: 2, c: 10, f: 2 },
-                      ],
-                      total: { kcal: 140, p: 6, c: 18, f: 6 } },
-
-                    { sentence: 'burrito bowl, double chicken',
-                      phrases: [
-                          { text: 'burrito bowl',   start: 0,  len: 12, kcal: 480, p: 22, c: 78, f: 12 },
-                          { text: 'double chicken', start: 14, len: 14, kcal: 300, p: 56, c: 0,  f: 7  },
-                      ],
-                      total: { kcal: 780, p: 78, c: 78, f: 19 } },
-                ],
+                meals: @json($meals),
 
                 /* ---- STATE ---- */
                 mealIdx:  0,
@@ -182,13 +223,11 @@
 
                 macroColor(ph) {
                     const max = Math.max(ph.p, ph.c, ph.f);
-                    if (ph.p === max) return '#818cf8'; // indigo-400 (protein)
-                    if (ph.c === max) return '#fbbf24'; // amber-400  (carbs)
-                    return                  '#fb7185'; // rose-400   (fat)
+                    if (ph.p === max) return '#818cf8';
+                    if (ph.c === max) return '#fbbf24';
+                    return                  '#fb7185';
                 },
 
-                /* Builds the typed sentence as an array of {text, ph?} segments
-                   for x-for to render. Phrase segments get the .bd-hl underline. */
                 segments() {
                     const sentence = this.meal.sentence;
                     const len      = this.typedLen;
@@ -208,12 +247,8 @@
                     return segs;
                 },
 
-                /* ---- MAIN LOOP ----
-                   One async function drives the whole timeline. Easier to read
-                   and tune than nested setTimeouts. */
                 async play() {
                     while (true) {
-                        // 1. typing
                         this.typedLen = 0; this.revealed = 0; this.phase = 'typing';
                         for (let i = 1; i <= this.meal.sentence.length; i++) {
                             this.typedLen = i;
@@ -221,11 +256,9 @@
                         }
                         await this.sleep(450);
 
-                        // 2. AI thinking
                         this.phase = 'estimating';
                         await this.sleep(750);
 
-                        // 3. reveal phrases
                         this.phase = 'breakdown';
                         for (let i = 1; i <= this.meal.phrases.length; i++) {
                             this.revealed = i;
@@ -233,17 +266,14 @@
                         }
                         await this.sleep(500);
 
-                        // 4. show total, hold
                         this.phase = 'total';
                         await this.sleep(2400);
 
-                        // 5. fade out, brief pause
                         this.phase = 'fading';
                         await this.sleep(650);
                         this.phase = 'rest';
                         await this.sleep(400);
 
-                        // 6. next meal
                         this.mealIdx = (this.mealIdx + 1) % this.meals.length;
                     }
                 },

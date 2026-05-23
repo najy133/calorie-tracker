@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Calorie Tracker') }} — Log a meal before you forget it</title>
+    <title>{{ config('app.name', 'Calorie Tracker') }} — {{ __('Log a meal before you forget it.') }}</title>
 
     <script>
         (function(){
@@ -15,7 +15,7 @@
     </script>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600&family=instrument-serif:400&family=dm-mono:400,500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600&family=instrument-serif:400&family=dm-mono:400,500&family=cairo:400,500,600,700&display=swap" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -50,26 +50,26 @@
 
             {{-- Left: copy --}}
             <div class="flex-1">
-                <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-6">
-                    AI-powered nutrition tracking
+                <p class="text-xs rtl:text-sm font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest rtl:tracking-normal mb-6">
+                    {{ __('AI-powered nutrition tracking') }}
                 </p>
 
                 <h1 class="font-serif text-5xl md:text-6xl text-zinc-900 dark:text-zinc-50 leading-[1.08] mb-6">
-                    Log a meal<br>before you<br>forget it.
+                    {{ __('Log a meal before you forget it.') }}
                 </h1>
 
                 <p class="text-zinc-500 dark:text-zinc-400 text-base leading-relaxed mb-10 max-w-sm">
-                    Type what you ate in plain English. No barcode scanning, no database — just your calories and macros back in seconds.
+                    {{ __('Type what you ate in plain English. No barcode scanning, no database — just your calories and macros back in seconds.') }}
                 </p>
 
                 <div class="flex items-center gap-6">
                     <a href="{{ route('register') }}"
                        class="inline-flex items-center px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors duration-150 shadow-sm shadow-emerald-600/20">
-                        Get started free
+                        {{ __('Get started free') }}
                     </a>
                     <a href="{{ route('home') }}"
                        class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors underline underline-offset-4 decoration-zinc-200 dark:decoration-zinc-700">
-                        Try it first
+                        {{ __('Try it first') }}
                     </a>
                 </div>
             </div>
@@ -81,10 +81,10 @@
                     {{-- Header --}}
                     <div class="flex items-center justify-between mb-5">
                         <div>
-                            <p class="text-zinc-50 text-sm font-medium">Today</p>
-                            <p class="text-zinc-500 text-xs">{{ now()->format('l, M j') }}</p>
+                            <p class="text-zinc-50 text-sm font-medium">{{ __('Today') }}</p>
+                            <p class="text-zinc-500 text-xs">{{ now()->locale(app()->getLocale())->translatedFormat(app()->getLocale() === 'ar' ? 'l، j M' : 'l, M j') }}</p>
                         </div>
-                        <span class="text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400">Goal: 2,000</span>
+                        <span class="text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400">{{ __('Goal: :value kcal', ['value' => '2,000']) }}</span>
                     </div>
 
                     {{-- Calorie ring + number --}}
@@ -104,44 +104,44 @@
                         </div>
                         <div>
                             <p class="font-mono text-2xl font-bold text-zinc-50 leading-none">1,284</p>
-                            <p class="text-zinc-500 text-xs mt-1">716 kcal remaining</p>
+                            <p class="text-zinc-500 text-xs mt-1">{{ __(':value kcal remaining', ['value' => '716']) }}</p>
                         </div>
                     </div>
 
                     {{-- Meal entries --}}
                     <div class="space-y-0 border-t border-zinc-800">
                         <div class="entry-1 flex items-center justify-between py-2.5 border-b border-zinc-800/60">
-                            <div class="min-w-0 mr-3">
-                                <p class="text-zinc-100 text-xs font-medium truncate">Grilled chicken & rice</p>
+                            <div class="min-w-0 me-3">
+                                <p class="text-zinc-100 text-xs font-medium truncate">{{ __('Grilled chicken & rice') }}</p>
                                 <p class="text-zinc-600 text-xs mt-0.5">
-                                    12:34 PM ·
-                                    <span class="text-indigo-400">P52g</span>
-                                    <span class="text-amber-400 ml-1">C68g</span>
-                                    <span class="text-rose-400 ml-1">F12g</span>
+                                    12:34 {{ __('PM') }} ·
+                                    <span class="text-indigo-400">{{ __('P') }}52g</span>
+                                    <span class="text-amber-400 ms-1">{{ __('C') }}68g</span>
+                                    <span class="text-rose-400 ms-1">{{ __('F') }}12g</span>
                                 </p>
                             </div>
                             <span class="font-mono text-xs text-zinc-300 shrink-0">580 kcal</span>
                         </div>
                         <div class="entry-2 flex items-center justify-between py-2.5 border-b border-zinc-800/60">
-                            <div class="min-w-0 mr-3">
-                                <p class="text-zinc-100 text-xs font-medium truncate">2 eggs, toast with butter</p>
+                            <div class="min-w-0 me-3">
+                                <p class="text-zinc-100 text-xs font-medium truncate">{{ __('2 eggs, toast with butter') }}</p>
                                 <p class="text-zinc-600 text-xs mt-0.5">
-                                    8:15 AM ·
-                                    <span class="text-indigo-400">P18g</span>
-                                    <span class="text-amber-400 ml-1">C28g</span>
-                                    <span class="text-rose-400 ml-1">F22g</span>
+                                    8:15 {{ __('AM') }} ·
+                                    <span class="text-indigo-400">{{ __('P') }}18g</span>
+                                    <span class="text-amber-400 ms-1">{{ __('C') }}28g</span>
+                                    <span class="text-rose-400 ms-1">{{ __('F') }}22g</span>
                                 </p>
                             </div>
                             <span class="font-mono text-xs text-zinc-300 shrink-0">380 kcal</span>
                         </div>
                         <div class="entry-3 flex items-center justify-between py-2.5">
-                            <div class="min-w-0 mr-3">
-                                <p class="text-zinc-100 text-xs font-medium truncate">Greek yogurt, granola</p>
+                            <div class="min-w-0 me-3">
+                                <p class="text-zinc-100 text-xs font-medium truncate">{{ __('Greek yogurt, granola') }}</p>
                                 <p class="text-zinc-600 text-xs mt-0.5">
-                                    7:30 AM ·
-                                    <span class="text-indigo-400">P15g</span>
-                                    <span class="text-amber-400 ml-1">C38g</span>
-                                    <span class="text-rose-400 ml-1">F6g</span>
+                                    7:30 {{ __('AM') }} ·
+                                    <span class="text-indigo-400">{{ __('P') }}15g</span>
+                                    <span class="text-amber-400 ms-1">{{ __('C') }}38g</span>
+                                    <span class="text-rose-400 ms-1">{{ __('F') }}6g</span>
                                 </p>
                             </div>
                             <span class="font-mono text-xs text-zinc-300 shrink-0">324 kcal</span>
@@ -150,7 +150,7 @@
 
                     {{-- Input --}}
                     <div class="mt-4 rounded-xl bg-zinc-800 border border-zinc-700 px-3 py-2.5">
-                        <p class="text-zinc-600 text-xs">Describe what you ate...</p>
+                        <p class="text-zinc-600 text-xs">{{ __('Describe what you ate...') }}</p>
                     </div>
                 </div>
             </div>
@@ -175,9 +175,9 @@
                         <rect x="6" y="34" width="10" height="3" rx="1.5" fill="#f43f5e"/>
                     </svg>
                 </div>
-                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Macros, not just calories</p>
+                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest rtl:tracking-normal mb-3">{{ __('Macros, not just calories') }}</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
-                    Protein, carbs, and fat colour-coded next to every meal, so you can read a day at a glance without doing the maths yourself.
+                    {{ __('Protein, carbs, and fat colour-coded next to every meal, so you can read a day at a glance without doing the maths yourself.') }}
                 </p>
             </div>
 
@@ -196,9 +196,9 @@
                         <circle cx="28" cy="28" r="22" fill="none" stroke="url(#wygRingGrad)" stroke-width="6" stroke-dasharray="138.2" stroke-dashoffset="14" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">One look is enough</p>
+                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest rtl:tracking-normal mb-3">{{ __('One look is enough') }}</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
-                    Your ring shifts from green to amber as you near your goal, and red if you go over — no configuration required.
+                    {{ __('Your ring shifts from green to amber as you near your goal, and red if you go over — no configuration required.') }}
                 </p>
             </div>
 
@@ -215,9 +215,9 @@
                         <rect x="62" y="36" width="6" height="18" rx="2" fill="#34d399"/>
                     </svg>
                 </div>
-                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">Find the pattern</p>
+                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest rtl:tracking-normal mb-3">{{ __('Find the pattern') }}</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
-                    Seven days at a glance — not just how today went, but whether Tuesday is always the problem.
+                    {{ __('Seven days at a glance — not just how today went, but whether Tuesday is always the problem.') }}
                 </p>
             </div>
 
@@ -229,9 +229,9 @@
                         <path d="M28 22c1 4 6 5 6 11a6 6 0 1 1-12 0c0-3 2-5 3-7 1 2 2 3 3-4z" fill="#fff" opacity="0.6"/>
                     </svg>
                 </div>
-                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3">The chain effect</p>
+                <p class="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest rtl:tracking-normal mb-3">{{ __('The chain effect') }}</p>
                 <p class="text-zinc-700 dark:text-zinc-300 text-sm leading-relaxed">
-                    Log at least once a day and you build a streak. Simple, but it works — the same reason you don't break a chain once it's long.
+                    {{ __('Log at least once a day and you build a streak. Simple, but it works — the same reason you don\'t break a chain once it\'s long.') }}
                 </p>
             </div>
 
@@ -245,18 +245,18 @@
         <div class="max-w-5xl mx-auto px-6 md:px-10 flex flex-col md:flex-row md:items-end md:justify-between gap-8">
             <div>
                 <h2 class="font-serif text-4xl md:text-5xl text-zinc-900 dark:text-zinc-50 leading-tight mb-3">
-                    Start logging.<br>It takes a minute.
+                    {{ __('Start logging.') }}<br>{{ __('It takes a minute.') }}
                 </h2>
-                <p class="text-zinc-400 dark:text-zinc-500 text-sm">No credit card. No onboarding flow. Just log a meal.</p>
+                <p class="text-zinc-400 dark:text-zinc-500 text-sm">{{ __('No credit card. No onboarding flow. Just log a meal.') }}</p>
             </div>
             <div class="shrink-0">
                 <a href="{{ route('register') }}"
                    class="inline-flex items-center px-6 py-3 rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 text-sm font-semibold hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors duration-150">
-                    Create free account →
+                    {{ __('Create free account →') }}
                 </a>
                 <p class="mt-3 text-xs text-zinc-400 dark:text-zinc-600">
-                    Already have one?
-                    <a href="{{ route('login') }}" class="hover:text-zinc-600 dark:hover:text-zinc-400 transition underline underline-offset-2">Log in</a>
+                    {{ __('Already have one?') }}
+                    <a href="{{ route('login') }}" class="hover:text-zinc-600 dark:hover:text-zinc-400 transition underline underline-offset-2">{{ __('Log in') }}</a>
                 </p>
             </div>
         </div>
@@ -264,7 +264,7 @@
 
     <footer class="border-t border-zinc-100 dark:border-zinc-800 py-6">
         <div class="max-w-5xl mx-auto px-6 md:px-10 flex items-center justify-between text-xs text-zinc-400 dark:text-zinc-600">
-            <span>Calorie Tracker</span>
+            <span>{{ __('Calorie Tracker') }}</span>
             <span>&copy; {{ date('Y') }}</span>
         </div>
     </footer>
