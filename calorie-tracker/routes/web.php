@@ -15,6 +15,11 @@ Route::get('/home', Homepage::class)->name('home');
 
 Route::get('/onboarding', Onboarding::class)->middleware('auth')->name('onboarding');
 
+Route::post('/onboarding/reset', function () {
+    auth()->user()->update(['onboarded_at' => null]);
+    return redirect()->route('onboarding');
+})->middleware('auth')->name('onboarding.reset');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
 
