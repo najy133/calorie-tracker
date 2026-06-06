@@ -323,7 +323,7 @@
                         @endif
                     </li>
                 @empty
-                    <li class="text-center py-10 text-zinc-400 dark:text-zinc-500">
+                    <li wire:key="empty-state" class="text-center py-10 text-zinc-400 dark:text-zinc-500">
                         <div class="text-4xl mb-3">🍽️</div>
                         <p class="text-sm">{{ __('No meals logged yet today.') }}</p>
                         <p class="text-xs mt-1">{{ __('Log your first meal above to get started.') }}</p>
