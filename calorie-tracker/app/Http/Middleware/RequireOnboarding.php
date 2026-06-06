@@ -17,7 +17,8 @@ class RequireOnboarding
             ! $request->routeIs('logout') &&
             ! $request->routeIs('verification.*') &&
             ! $request->routeIs('password.*') &&
-            ! $request->routeIs('auth.*')
+            ! $request->routeIs('auth.*') &&
+            ! $request->is('livewire/*')
         ) {
             return redirect()->route('onboarding');
         }

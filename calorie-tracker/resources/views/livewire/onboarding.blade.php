@@ -13,31 +13,101 @@
             <span class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Calorie Tracker</span>
         </div>
         @if($step === 'welcome')
-            <a href="{{ route('home') }}" class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition">Skip for now</a>
+            <button wire:click="chooseManual" class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition">Skip for now</button>
         @endif
     </header>
 
-    {{-- Progress bar (steps 1–4) --}}
+    {{-- Step navigator + progress bar --}}
     @php
-        $stepNum = match($step) { 'details' => 1, 'activity' => 2, 'goal' => 3, 'calc', 'result' => 4, default => 0 };
+        $stepNum  = match($step) { 'details' => 1, 'activity' => 2, 'goal' => 3, 'eating' => 4, 'context' => 5, 'calc', 'result' => 6, default => 0 };
+        $navSteps = [
+            ['id' => 'welcome',  'label' => 'Welcome'],
+            ['id' => 'details',  'label' => 'Details'],
+            ['id' => 'activity', 'label' => 'Activity'],
+            ['id' => 'goal',     'label' => 'Goal'],
+            ['id' => 'eating',   'label' => 'Eating'],
+            ['id' => 'context',  'label' => 'Context'],
+            ['id' => 'result',   'label' => 'Result'],
+        ];
+        $navIds      = array_column($navSteps, 'id');
+        $currentIdx  = ($k = array_search($step, $navIds)) !== false ? $k : -1;
     @endphp
-    @if($stepNum > 0)
-        <div class="relative z-10 px-6 md:px-8 mb-1">
+    @if(!in_array($step, ['calc', 'done']))
+        <div class="relative z-10 px-6 md:px-8 mb-4">
             <div class="max-w-[560px] mx-auto">
-                <div class="flex items-center justify-between mb-1.5">
-                    <span class="font-mono text-[11px] text-zinc-400 dark:text-zinc-500">STEP {{ $stepNum }} / 4</span>
+
+                {{-- Pills: desktop only --}}
+                <div class="hidden md:flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+                    @foreach($navSteps as $idx => $s)
+                        <button wire:click="jumpTo('{{ $s['id'] }}')"
+                                class="shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-all whitespace-nowrap
+                                    {{ $idx === $currentIdx
+                                        ? 'bg-emerald-600 text-white border-emerald-600 cursor-default'
+                                        : ($idx < $currentIdx
+                                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer'
+                                            : 'bg-transparent text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 cursor-pointer') }}">
+                            {{ $s['label'] }}
+                        </button>
+                    @endforeach
                 </div>
-                <div class="h-1 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-700"
-                         style="width: {{ ($stepNum / 4) * 100 }}%"></div>
-                </div>
+
+                @if($stepNum > 0)
+                    <div class="h-0.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden md:mt-3">
+                        <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-700"
+                             style="width: {{ ($stepNum / 6) * 100 }}%"></div>
+                    </div>
+                @endif
             </div>
         </div>
     @endif
 
+    {{-- Floating step navigator: mobile only --}}
+    <div wire:ignore
+         x-data="{
+             open: false,
+             steps: ['welcome','details','activity','goal','eating','context','result'],
+             labels: { welcome:'Welcome', details:'Details', activity:'Activity', goal:'Goal', eating:'Eating', context:'Context', result:'Result' },
+             get cur() { return this.steps.indexOf($wire.step); },
+             get show() { return !['calc','done'].includes($wire.step); }
+         }"
+         x-show="show"
+         class="fixed bottom-4 right-4 z-50 flex md:hidden flex-col items-end gap-2">
+
+        <div x-show="open"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 translate-y-2"
+             class="flex flex-col gap-1.5 items-end">
+            <template x-for="(key, idx) in steps" :key="key">
+                <button
+                    @click="idx !== cur ? ($wire.jumpTo(key), open = false) : null"
+                    :class="{
+                        'bg-emerald-600 text-white border-emerald-600 cursor-default': idx === cur,
+                        'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer': idx !== cur
+                    }"
+                    class="text-xs font-medium px-3 py-1.5 rounded-full border transition whitespace-nowrap shadow-sm"
+                    x-text="labels[key]">
+                </button>
+            </template>
+        </div>
+
+        <button @click="open = !open"
+                class="w-10 h-10 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-md flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-400 transition">
+            <svg x-show="!open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+            </svg>
+            <svg x-show="open" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        </button>
+    </div>
+
     {{-- Stage --}}
     <main class="relative z-10 px-6 md:px-8 pb-16 pt-6">
-        <div class="max-w-[560px] mx-auto">
+        <div class="max-w-[560px] mx-auto" wire:key="{{ $step }}">
 
             {{-- ── WELCOME ── --}}
             @if($step === 'welcome')
@@ -115,11 +185,11 @@
                         <div>
                             <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">Biological sex</label>
                             <div class="flex rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-0.5 gap-0.5">
-                                <button type="button" wire:click="$set('sex', 'F')"
+                                <button type="button" wire:click="selectSex('F')"
                                         class="flex-1 py-2 rounded-md text-xs font-semibold transition {{ $sex === 'F' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700' }}">
                                     Female
                                 </button>
-                                <button type="button" wire:click="$set('sex', 'M')"
+                                <button type="button" wire:click="selectSex('M')"
                                         class="flex-1 py-2 rounded-md text-xs font-semibold transition {{ $sex === 'M' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700' }}">
                                     Male
                                 </button>
@@ -175,7 +245,7 @@
 
                     <div class="space-y-2.5 mb-8">
                         @foreach($activities as $opt)
-                            <button type="button" wire:click="$set('activity', '{{ $opt['id'] }}')"
+                            <button type="button" wire:click="selectActivity('{{ $opt['id'] }}')"
                                     class="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border text-start transition hover:-translate-y-px
                                         {{ $activity === $opt['id']
                                             ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 ring-2 ring-emerald-500/10'
@@ -235,7 +305,7 @@
 
                     <div class="space-y-2.5 mb-8">
                         @foreach($goals as $opt)
-                            <button type="button" wire:click="$set('goal', '{{ $opt['id'] }}')"
+                            <button type="button" wire:click="selectGoal('{{ $opt['id'] }}')"
                                     class="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border text-start transition hover:-translate-y-px
                                         {{ $goal === $opt['id']
                                             ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 ring-2 ring-emerald-500/10'
@@ -258,6 +328,42 @@
                                 </div>
                             </button>
                         @endforeach
+
+                        {{-- Something else --}}
+                        <button type="button" wire:click="selectGoal('other')"
+                                class="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border text-start transition hover:-translate-y-px
+                                    {{ $goal === 'other'
+                                        ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 ring-2 ring-emerald-500/10'
+                                        : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:shadow-sm' }}">
+                            <div class="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition
+                                {{ $goal === 'other' ? 'bg-emerald-600 text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400' }}">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Something else</p>
+                                <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Body recomp, performance, or anything in between.</p>
+                            </div>
+                            <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition
+                                {{ $goal === 'other' ? 'border-emerald-600 bg-emerald-600' : 'border-zinc-200 dark:border-zinc-600' }}">
+                                @if($goal === 'other')
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                @endif
+                            </div>
+                        </button>
+
+                        {{-- Free-text field, shown when "Something else" is selected --}}
+                        @if($goal === 'other')
+                            <div class="pt-1">
+                                <textarea wire:model="goalNotes"
+                                          rows="3"
+                                          placeholder="e.g. lose fat while building muscle, train for a marathon, recover after injury..."
+                                          class="w-full px-4 py-3 text-sm rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none transition"
+                                ></textarea>
+                                @error('goalNotes') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                            </div>
+                        @endif
                     </div>
                     @error('goal') <p class="mb-4 text-xs text-rose-500">{{ $message }}</p> @enderror
 
@@ -268,8 +374,94 @@
                         </button>
                         <button wire:click="next"
                                 class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
-                                @disabled(!$goal)>
-                            Calculate target
+                                @disabled(!$goal || ($goal === 'other' && !trim($goalNotes)))>
+                            Continue
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+            {{-- ── EATING HABITS ── --}}
+            @elseif($step === 'eating')
+                <div class="step-in">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">Eating habits</p>
+                    <h1 class="text-3xl md:text-4xl font-serif text-zinc-900 dark:text-zinc-50 mb-2 leading-tight">How do you usually eat?</h1>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Helps the AI set a more accurate target for your lifestyle.</p>
+
+                    <div class="space-y-3 mb-8">
+                        @foreach([
+                            ['id' => 'home', 'icon' => 'home', 'title' => 'Cook at home', 'sub' => 'You control ingredients and portions most of the time.'],
+                            ['id' => 'out',  'icon' => 'fork', 'title' => 'Mostly eat out', 'sub' => 'Restaurants, takeaway, or delivery most days.'],
+                            ['id' => 'mix',  'icon' => 'mix',  'title' => 'Mix of both',   'sub' => 'Some home cooking, some eating out.'],
+                        ] as $opt)
+                            <button wire:click="selectEatingHabit('{{ $opt['id'] }}')"
+                                    class="w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition text-left
+                                        {{ $eatingHabit === $opt['id']
+                                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30'
+                                            : 'border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-600' }}">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0
+                                    {{ $eatingHabit === $opt['id'] ? 'bg-emerald-600' : 'bg-zinc-200 dark:bg-zinc-700' }}">
+                                    @if($opt['icon'] === 'home')
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $eatingHabit === $opt['id'] ? '#fff' : 'currentColor' }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ $eatingHabit !== $opt['id'] ? 'text-zinc-500 dark:text-zinc-400' : '' }}"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                    @elseif($opt['icon'] === 'fork')
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $eatingHabit === $opt['id'] ? '#fff' : 'currentColor' }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ $eatingHabit !== $opt['id'] ? 'text-zinc-500 dark:text-zinc-400' : '' }}"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
+                                    @else
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $eatingHabit === $opt['id'] ? '#fff' : 'currentColor' }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="{{ $eatingHabit !== $opt['id'] ? 'text-zinc-500 dark:text-zinc-400' : '' }}"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                                    @endif
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold text-zinc-900 dark:text-zinc-50">{{ $opt['title'] }}</p>
+                                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{{ $opt['sub'] }}</p>
+                                </div>
+                                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0
+                                    {{ $eatingHabit === $opt['id'] ? 'border-emerald-600 bg-emerald-600' : 'border-zinc-300 dark:border-zinc-600' }}">
+                                    @if($eatingHabit === $opt['id'])
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    @endif
+                                </div>
+                            </button>
+                        @endforeach
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button wire:click="back" class="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                            Back
+                        </button>
+                        <button wire:click="next"
+                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
+                                @disabled(!$eatingHabit)>
+                            Continue
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+            {{-- ── HEALTH CONTEXT ── --}}
+            @elseif($step === 'context')
+                <div class="step-in">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">Almost there</p>
+                    <h1 class="text-3xl md:text-4xl font-serif text-zinc-900 dark:text-zinc-50 mb-2 leading-tight">Anything else we should know?</h1>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Optional — but the more context the AI has, the better your target.</p>
+
+                    <div class="mb-4">
+                        <textarea
+                            wire:model="healthNotes"
+                            rows="5"
+                            placeholder="e.g. type 2 diabetes, vegetarian, bad knees, shift work, high stress, poor sleep..."
+                            class="w-full px-4 py-3 text-sm rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none transition"
+                        ></textarea>
+                        <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-2">This stays private and is only used to personalise your calorie target.</p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button wire:click="back" class="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                            Back
+                        </button>
+                        <button wire:click="next"
+                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20">
+                            Calculate my target
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>
                     </div>
@@ -367,9 +559,13 @@
                             <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/>
                         </svg>
                         <p class="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed">
-                            From <span class="font-mono font-semibold">{{ number_format($bmr) }}</span> kcal baseline (Mifflin–St Jeor)
-                            × {{ $activityName }} activity = <span class="font-mono font-semibold">{{ number_format($tdee) }}</span> kcal to maintain.
-                            Adjusted for "{{ $goal }}".
+                            @if($aiExplanation)
+                                {{ $aiExplanation }}
+                            @else
+                                From <span class="font-mono font-semibold">{{ number_format($bmr) }}</span> kcal baseline (Mifflin–St Jeor)
+                                × {{ $activityName }} activity = <span class="font-mono font-semibold">{{ number_format($tdee) }}</span> kcal to maintain.
+                                Adjusted for "{{ $goal }}".
+                            @endif
                         </p>
                     </div>
 
@@ -402,7 +598,7 @@
                         We'll drop you into your profile. Set your daily calorie target manually — change it anytime.
                     </p>
                     <div class="flex items-center gap-3">
-                        <button wire:click="$set('step', 'welcome')"
+                        <button wire:click="back"
                                 class="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                             Change my mind
@@ -419,7 +615,7 @@
             @elseif($step === 'done')
                 @php $finalTarget = $target + $adjust; @endphp
                 <div class="step-in flex flex-col items-center text-center py-12"
-                     x-data x-init="setTimeout(() => $wire.redirect('{{ route('home') }}'), 1200)">
+                     x-data x-init="setTimeout(() => $wire.goHome(), 1200)">
                     <div class="relative mb-6">
                         <x-brand-ring :size="200" :stroke="12" :progress="1" color="#059669" track-color="#d1fae5" />
                         <div class="absolute inset-0 flex items-center justify-center">
@@ -439,5 +635,6 @@
 
         </div>
     </main>
+
 
 </div>

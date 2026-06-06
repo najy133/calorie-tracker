@@ -54,6 +54,10 @@ class User extends Authenticatable
         'height_cm',
         'activity_level',
         'goal',
+        'goal_notes',
+        'eating_habit',
+        'health_notes',
+        'ai_explanation',
         'onboarded_at',
     ];
 

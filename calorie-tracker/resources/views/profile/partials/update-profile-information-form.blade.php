@@ -83,12 +83,10 @@
         <div class="flex items-center gap-4 pt-1 flex-wrap">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 
-            <form method="POST" action="{{ route('onboarding.reset') }}">
-                @csrf
-                <button type="submit" class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
-                    {{ __('Recalculate target with AI →') }}
-                </button>
-            </form>
+            <button type="submit" form="onboarding-reset-form"
+                    class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
+                {{ __('Recalculate target with AI →') }}
+            </button>
 
             @if (session('status') === 'profile-updated')
                 <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 2000)"
@@ -98,5 +96,10 @@
                 </p>
             @endif
         </div>
+    </form>
+
+    {{-- Standalone form referenced by the Recalculate button above --}}
+    <form id="onboarding-reset-form" method="POST" action="{{ route('onboarding.reset') }}">
+        @csrf
     </form>
 </section>
