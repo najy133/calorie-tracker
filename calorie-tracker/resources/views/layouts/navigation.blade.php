@@ -13,12 +13,12 @@
             {{-- Brand --}}
             <div class="flex items-center">
                 @auth
-                    <a href="{{ route('dashboard') }}" class="text-base font-semibold text-zinc-900 dark:text-zinc-50 tracking-tight hover:text-emerald-600 dark:hover:text-emerald-400 transition">
-                        {{ __('Calorie Tracker') }}
+                    <a href="{{ route('dashboard') }}" class="text-base hover:opacity-80 transition">
+                        <x-wordmark />
                     </a>
                 @else
-                    <a href="{{ route('home') }}" class="text-base font-semibold text-zinc-900 dark:text-zinc-50 tracking-tight hover:text-emerald-600 dark:hover:text-emerald-400 transition">
-                        {{ __('Calorie Tracker') }}
+                    <a href="{{ route('landing') }}" class="text-base hover:opacity-80 transition">
+                        <x-wordmark />
                     </a>
                 @endauth
             </div>

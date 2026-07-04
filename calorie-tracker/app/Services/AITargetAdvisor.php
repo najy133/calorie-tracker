@@ -26,12 +26,13 @@ class AITargetAdvisor
         string  $eatingHabit,
         ?string $healthNotes,
         int     $mathTarget,   // fallback from Mifflin formula
+        string  $locale = 'en',
     ): ?array {
         try {
             $response = Prism::text()
                 ->using(Provider::OpenAI, 'gpt-4o-mini')
                 ->withSystemPrompt('You are a registered dietitian and sports nutritionist. Always respond with valid JSON only — no markdown, no code fences, no extra text.')
-                ->withPrompt($this->buildPrompt($age, $sex, $weightKg, $heightCm, $activity, $goal, $goalNotes, $eatingHabit, $healthNotes, $mathTarget))
+                ->withPrompt($this->buildPrompt($age, $sex, $weightKg, $heightCm, $activity, $goal, $goalNotes, $eatingHabit, $healthNotes, $mathTarget, $locale))
                 ->asText()
                 ->text;
 
@@ -64,7 +65,11 @@ class AITargetAdvisor
         string  $eatingHabit,
         ?string $healthNotes,
         int     $mathTarget,
+        string  $locale = 'en',
     ): string {
+        $langNote = $locale === 'ar'
+            ? "\n        5. Write the explanation field in Arabic."
+            : '';
         $sexLabel      = $sex === 'M' ? 'male' : 'female';
         $activityLabel = match ($activity) {
             'sedentary' => 'sedentary (desk job, little or no exercise)',
@@ -108,7 +113,7 @@ class AITargetAdvisor
         1. Use that formula result as your starting point.
         2. Adjust it if the user's eating habits, health context, or other factors warrant it. For example: eating out frequently means hidden calories, so you might set a slightly lower target; certain medical conditions may require a different approach.
         3. Set protein, carbs, and fat macros in grams that suit the user's goal and context.
-        4. Write a 2–3 sentence explanation that tells the user WHY you set this specific target — reference their actual context (eating habits, health notes), not just the formula.
+        4. Write a 2–3 sentence explanation that tells the user WHY you set this specific target — reference their actual context (eating habits, health notes), not just the formula.{$langNote}
 
         Respond ONLY with this JSON (no markdown, no extra keys):
         {

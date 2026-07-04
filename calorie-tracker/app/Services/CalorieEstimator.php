@@ -9,7 +9,7 @@ use RuntimeException;
 class CalorieEstimator
 {
     /**
-     * @return array{calories: int, protein: int, carbs: int, fat: int, explanation: string|null}
+     * @return array{not_food: bool, calories?: int, protein?: int, carbs?: int, fat?: int, explanation?: string|null, breakdown?: array}
      * @throws RuntimeException
      */
     public function estimate(string $food, string $locale = 'en'): array
@@ -23,11 +23,16 @@ class CalorieEstimator
 
         $data = json_decode(trim($response), true);
 
+        if (is_array($data) && ($data['error'] ?? null) === 'not_food') {
+            return ['not_food' => true];
+        }
+
         if (!is_array($data) || !array_key_exists('calories', $data)) {
             throw new RuntimeException("Unexpected AI response: {$response}");
         }
 
         return [
+            'not_food'    => false,
             'calories'    => max(0, (int) ($data['calories'] ?? 0)),
             'protein'     => max(0, (int) ($data['protein'] ?? 0)),
             'carbs'       => max(0, (int) ($data['carbs'] ?? 0)),
@@ -78,9 +83,11 @@ class CalorieEstimator
 
         Rules:
         - Any edible item, meal, quantity, or restaurant reference is valid food.
+        - Interpret misspellings, abbreviations, and partial spellings as the food the user most likely meant (e.g. "appl" -> apple, "chikn" -> chicken, "banan" -> banana, "spaghtti" -> spaghetti). Lean toward recognising a food.
         - Treat branded meals and fast food as valid (even if misspelled or regional).
         - If quantity or preparation details are missing, assume a standard single serving.
         - If a known food item is mentioned, estimate it regardless of brand name.
+        - Only return exactly {"error": "not_food"} when the input is clearly NOT an attempt to name a food — random characters (e.g. "asdfgh"), greetings, questions, or unrelated objects. When in doubt, treat it as food.
         - The explanation must: (1) state the assumption made about serving size or preparation, (2) mention in one short sentence what extra detail would improve accuracy.{$langNote}
 
         Examples:
@@ -89,6 +96,12 @@ class CalorieEstimator
 
         Input: 2 eggs, toast with butter
         Output: {"calories": 320, "protein": 15, "carbs": 15, "fat": 22, "explanation": "Assumed 2 large eggs scrambled, one slice of toast, and 1 tsp butter.", "breakdown": [{"text": "2 eggs", "kcal": 140, "p": 12, "c": 1, "f": 10}, {"text": "toast", "kcal": 80, "p": 3, "c": 14, "f": 1}, {"text": "butter", "kcal": 100, "p": 0, "c": 0, "f": 11}]}
+
+        Input: appl
+        Output: {"calories": 95, "protein": 0, "carbs": 25, "fat": 0, "explanation": "Interpreted as one medium apple (~180g). Specify size or variety for a better estimate.", "breakdown": [{"text": "apple", "kcal": 95, "p": 0, "c": 25, "f": 0}]}
+
+        Input: my homework
+        Output: {"error": "not_food"}
 
         Input: {$food}
         Output:
