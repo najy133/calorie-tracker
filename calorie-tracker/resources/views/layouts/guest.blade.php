@@ -3,9 +3,10 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Calorie Tracker') }}</title>
+        <title>{{ config('app.name', 'Mealo') }}</title>
 
         <script>
             (function(){
@@ -30,8 +31,8 @@
                 <div class="absolute -bottom-32 -right-20 w-64 h-64 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none"></div>
 
                 <div class="relative">
-                    <a href="{{ route('home') }}" class="text-lg font-semibold text-white tracking-tight">
-                        {{ __('Calorie Tracker') }}
+                    <a href="{{ route('landing') }}" class="text-lg hover:opacity-80 transition">
+                        <x-wordmark :dark="true" />
                     </a>
                 </div>
 
@@ -45,15 +46,43 @@
                     </p>
                 </div>
 
-                <p class="relative text-xs text-zinc-600">&copy; {{ date('Y') }} Calorie Tracker</p>
+                <p class="relative text-xs text-zinc-600">&copy; {{ date('Y') }} Mealo</p>
             </div>
 
             {{-- Form panel --}}
-            <div class="flex-1 flex items-center justify-center px-6 py-12 bg-white dark:bg-zinc-900">
+            <div class="flex-1 flex items-center justify-center px-6 py-12 bg-white dark:bg-zinc-900 relative">
+
+                {{-- Language + theme switchers --}}
+                <div class="absolute top-5 end-6 flex items-center gap-1">
+                    <form method="POST" action="{{ route('locale.switch') }}">
+                        @csrf
+                        <input type="hidden" name="locale" value="{{ app()->getLocale() === 'ar' ? 'en' : 'ar' }}">
+                        <button type="submit"
+                                class="px-2.5 py-1 rounded-md text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition tracking-wide">
+                            {{ app()->getLocale() === 'ar' ? 'EN' : 'عربي' }}
+                        </button>
+                    </form>
+                    <button type="button" onclick="toggleTheme()"
+                            class="p-1.5 rounded-lg text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition">
+                        <svg class="h-4 w-4 hidden dark:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14A7 7 0 0012 5z"/>
+                        </svg>
+                        <svg class="h-4 w-4 block dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                        </svg>
+                    </button>
+                </div>
+                <script>
+                    function toggleTheme() {
+                        var dark = document.documentElement.classList.toggle('dark');
+                        localStorage.setItem('theme', dark ? 'dark' : 'light');
+                    }
+                </script>
+
                 <div class="w-full max-w-sm">
                     <div class="lg:hidden mb-8">
-                        <a href="{{ route('home') }}" class="text-xl font-semibold text-zinc-900 dark:text-zinc-50 tracking-tight">
-                            {{ __('Calorie Tracker') }}
+                        <a href="{{ route('landing') }}" class="text-xl hover:opacity-80 transition">
+                            <x-wordmark />
                         </a>
                     </div>
                     {{ $slot }}

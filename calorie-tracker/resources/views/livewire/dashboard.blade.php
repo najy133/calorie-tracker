@@ -1,25 +1,27 @@
 <div class="mx-auto max-w-5xl px-6 md:px-10 py-8">
 
     {{-- Page header --}}
-    <div class="flex items-center justify-between mb-8 flex-wrap gap-3">
-        <div>
-            <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{{ __('Your Progress') }}</h1>
+    <div class="flex items-start justify-between mb-8 gap-3">
+        <div class="min-w-0">
+            <h1 class="text-xl md:text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{{ __('Your Progress') }}</h1>
             <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{{ now()->locale(app()->getLocale())->translatedFormat(app()->getLocale() === 'ar' ? 'l، j F' : 'l, F j') }}</p>
         </div>
-        <div class="flex items-center gap-2">
-            @if($streak > 0)
-                <span class="px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-medium">
-                    🔥 {{ __(':count-day streak', ['count' => $streak]) }}
-                </span>
-            @endif
-            <span class="px-3 py-1 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                {{ __('Goal: :value kcal', ['value' => number_format($dailyGoal)]) }}
+        <a href="{{ route('home') }}"
+           class="shrink-0 inline-flex items-center px-4 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 transition whitespace-nowrap">
+            {{ __('Log a Meal →') }}
+        </a>
+    </div>
+
+    {{-- Stat pills --}}
+    <div class="flex items-center flex-wrap gap-2 mb-6">
+        @if($streak > 0)
+            <span class="px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-medium whitespace-nowrap">
+                🔥 {{ __(':count-day streak', ['count' => $streak]) }}
             </span>
-            <a href="{{ route('home') }}"
-               class="inline-flex items-center px-4 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 transition">
-                {{ __('Log a Meal →') }}
-            </a>
-        </div>
+        @endif
+        <span class="px-3 py-1.5 rounded-full text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 whitespace-nowrap">
+            {{ __('Goal: :value kcal', ['value' => number_format($dailyGoal)]) }}
+        </span>
     </div>
 
     {{-- Weekly bar chart --}}
@@ -44,7 +46,7 @@
                         {{ $day['calories'] >= 1000 ? number_format($day['calories'] / 1000, 1) . 'k' : $day['calories'] }}
                     </span>
 
-                    <div class="w-full flex items-end h-24 {{ $day['isToday'] ? 'rounded-lg ring-2 ring-emerald-400 dark:ring-emerald-500 ring-offset-1 dark:ring-offset-zinc-900' : '' }}">
+                    <div class="w-full flex items-end h-24">
                         <div class="bar-animate w-full rounded-t-md {{ $barColor }} {{ $day['calories'] === 0 ? 'bg-zinc-100 dark:bg-zinc-800 rounded-md' : '' }}"
                              style="height: {{ max(4, $day['pct']) }}%; animation-delay: {{ $index * 0.06 }}s"></div>
                     </div>
@@ -128,25 +130,26 @@
                                             <div class="flex-1 min-w-0">
                                                 <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">{{ $entry->food }}</p>
                                                 <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
-                                                    {{ $entry->created_at->format('g:i') }} {{ __($entry->created_at->format('A')) }}
+                                                    <span class="whitespace-nowrap">{{ $entry->created_at->format('g:i') }} {{ __($entry->created_at->format('A')) }}</span>
                                                     @if($entry->protein || $entry->carbs || $entry->fat)
-                                                        &nbsp;·&nbsp;
-                                                        <span class="text-indigo-500 dark:text-indigo-400">{{ __('P') }}{{ $entry->protein }}g</span>
-                                                        &nbsp;<span class="text-amber-500 dark:text-amber-400">{{ __('C') }}{{ $entry->carbs }}g</span>
-                                                        &nbsp;<span class="text-rose-400 dark:text-rose-400">{{ __('F') }}{{ $entry->fat }}g</span>
+                                                        <span class="whitespace-nowrap">
+                                                            &nbsp;·&nbsp;<span class="text-indigo-500 dark:text-indigo-400">{{ __('P') }}{{ $entry->protein }}g</span>
+                                                            <span class="text-amber-500 dark:text-amber-400">{{ __('C') }}{{ $entry->carbs }}g</span>
+                                                            <span class="text-rose-400 dark:text-rose-400">{{ __('F') }}{{ $entry->fat }}g</span>
+                                                        </span>
                                                     @endif
                                                 </p>
                                             </div>
                                             <div class="flex items-center gap-3 ms-4 shrink-0">
-                                                <span class="font-mono text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                                                <span class="font-mono text-sm font-semibold text-zinc-700 dark:text-zinc-300 whitespace-nowrap">
                                                     {{ number_format($entry->calories) }} kcal
                                                 </span>
                                                 <button wire:click="startEdit({{ $entry->id }})"
-                                                        class="text-xs text-zinc-300 dark:text-zinc-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition opacity-0 group-hover:opacity-100"
+                                                        class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-indigo-500 dark:hover:text-indigo-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                                         title="Edit entry">✎</button>
                                                 <button wire:click="delete({{ $entry->id }})"
                                                         wire:confirm="{{ __('Remove this entry?') }}"
-                                                        class="text-xs text-zinc-300 dark:text-zinc-600 hover:text-rose-500 dark:hover:text-rose-400 transition opacity-0 group-hover:opacity-100"
+                                                        class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-rose-500 dark:hover:text-rose-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                                         title="Remove entry">✕</button>
                                             </div>
                                         </div>
@@ -157,6 +160,18 @@
                     </div>
                 @endforeach
             </div>
+
+            @if($hasMoreDays)
+                <div class="mt-5 text-center">
+                    <button wire:click="showMore"
+                            wire:loading.attr="disabled"
+                            wire:target="showMore"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:border-emerald-400 dark:hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
+                        {{ __('Show earlier meals') }}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                </div>
+            @endif
         @endif
     </section>
 

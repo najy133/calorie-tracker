@@ -31,11 +31,15 @@ class Onboarding extends Component
     public string  $activityName = '';
     public string  $aiExplanation = '';
 
+    // Fingerprint of the inputs used for the last calculation — lets us skip
+    // recalculating when nothing changed
+    public string  $calcFingerprint = '';
+
     public function mount(): void
     {
         $user = auth()->user();
 
-        if ($user->onboarded_at !== null) {
+        if ($user->onboarded_at !== null && !request()->boolean('recalculate')) {
             $this->redirect(route('home'), navigate: true);
             return;
         }
@@ -50,6 +54,32 @@ class Onboarding extends Component
         $this->goalNotes   = $user->goal_notes     ?? '';
         $this->eatingHabit = $user->eating_habit   ?? '';
         $this->healthNotes = $user->health_notes   ?? '';
+
+        // Returning user (recalculate flow): restore the saved result so jumping
+        // to Result shows it instantly instead of recalculating
+        if ($user->target_protein !== null && $user->daily_goal && $this->age && $this->sex && $this->weightKg && $this->heightCm && $this->activity && $this->goal) {
+            $this->target        = $user->daily_goal;
+            $this->protein       = $user->target_protein;
+            $this->carbs         = $user->target_carbs ?? 0;
+            $this->fat           = $user->target_fat ?? 0;
+            $this->aiExplanation = $user->ai_explanation ?? '';
+
+            $result = app(TargetCalculator::class)->calculate(
+                $this->age, $this->sex, $this->weightKg, $this->heightCm, $this->activity, $this->goal,
+            );
+            $this->bmr  = $result['bmr'];
+            $this->tdee = $result['tdee'];
+
+            $this->activityName = match ($this->activity) {
+                'sedentary' => __('sedentary'),
+                'light'     => __('lightly active'),
+                'moderate'  => __('moderately active'),
+                'very'      => __('very active'),
+                default     => $this->activity,
+            };
+
+            $this->calcFingerprint = $this->inputFingerprint();
+        }
     }
 
     public function chooseAi(): void
@@ -117,6 +147,12 @@ class Onboarding extends Component
 
         if (!in_array($target, $allowed)) return;
 
+        if ($target === 'result' && $this->needsCalculation()) {
+            $complete = $this->age && $this->sex && $this->weightKg && $this->heightCm && $this->activity && $this->goal;
+            $this->step = $complete ? 'calc' : 'details';
+            return;
+        }
+
         $this->step = $target;
         if ($target !== 'result') {
             $this->adjust = 0;
@@ -159,6 +195,7 @@ class Onboarding extends Component
             eatingHabit:  $this->eatingHabit,
             healthNotes:  $this->healthNotes ?: null,
             mathTarget:   $result['target'],
+            locale:       app()->getLocale(),
         );
 
         if ($ai) {
@@ -178,14 +215,29 @@ class Onboarding extends Component
         }
 
         $this->activityName = match ($this->activity) {
-            'sedentary' => 'sedentary',
-            'light'     => 'lightly active',
-            'moderate'  => 'moderately active',
-            'very'      => 'very active',
+            'sedentary' => __('sedentary'),
+            'light'     => __('lightly active'),
+            'moderate'  => __('moderately active'),
+            'very'      => __('very active'),
             default     => $this->activity,
         };
 
+        $this->calcFingerprint = $this->inputFingerprint();
         $this->step = 'result';
+    }
+
+    private function inputFingerprint(): string
+    {
+        return md5(json_encode([
+            $this->age, $this->sex, $this->weightKg, $this->heightCm,
+            $this->activity, $this->goal, $this->goalNotes,
+            $this->eatingHabit, $this->healthNotes,
+        ]));
+    }
+
+    private function needsCalculation(): bool
+    {
+        return $this->target === 0 || $this->calcFingerprint !== $this->inputFingerprint();
     }
 
     public function goHome(): void
@@ -199,6 +251,9 @@ class Onboarding extends Component
 
         auth()->user()->update([
             'daily_goal'     => $final,
+            'target_protein' => $this->protein,
+            'target_carbs'   => $this->carbs,
+            'target_fat'     => $this->fat,
             'age'            => $this->age,
             'sex'            => $this->sex,
             'weight_kg'      => $this->weightKg,
@@ -260,7 +315,7 @@ class Onboarding extends Component
     private function nextFromContext(): void
     {
         // health notes are optional — no validation required
-        $this->step = 'calc';
+        $this->step = $this->needsCalculation() ? 'calc' : 'result';
     }
 
     public function render()

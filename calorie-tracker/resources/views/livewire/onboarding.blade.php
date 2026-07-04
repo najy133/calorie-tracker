@@ -8,12 +8,11 @@
 
     {{-- Header --}}
     <header class="relative z-10 flex items-center justify-between px-6 md:px-8 py-5">
-        <div class="flex items-center gap-2.5">
-            <x-brand-ring :size="28" :stroke="5" :progress="1" color="#059669" track-color="#d1fae5" />
-            <span class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Calorie Tracker</span>
-        </div>
-        @if($step === 'welcome')
-            <button wire:click="chooseManual" class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition">Skip for now</button>
+        <a href="{{ route('dashboard') }}" class="text-sm hover:opacity-80 transition"><x-wordmark /></a>
+        @if($step !== 'done')
+            <button wire:click="chooseManual" class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
+                {{ $step === 'welcome' ? __('Skip for now') : __('Exit setup') }}
+            </button>
         @endif
     </header>
 
@@ -21,13 +20,13 @@
     @php
         $stepNum  = match($step) { 'details' => 1, 'activity' => 2, 'goal' => 3, 'eating' => 4, 'context' => 5, 'calc', 'result' => 6, default => 0 };
         $navSteps = [
-            ['id' => 'welcome',  'label' => 'Welcome'],
-            ['id' => 'details',  'label' => 'Details'],
-            ['id' => 'activity', 'label' => 'Activity'],
-            ['id' => 'goal',     'label' => 'Goal'],
-            ['id' => 'eating',   'label' => 'Eating'],
-            ['id' => 'context',  'label' => 'Context'],
-            ['id' => 'result',   'label' => 'Result'],
+            ['id' => 'welcome',  'label' => __('Welcome')],
+            ['id' => 'details',  'label' => __('Details')],
+            ['id' => 'activity', 'label' => __('Activity')],
+            ['id' => 'goal',     'label' => __('Goal')],
+            ['id' => 'eating',   'label' => __('Eating')],
+            ['id' => 'context',  'label' => __('Context')],
+            ['id' => 'result',   'label' => __('Result')],
         ];
         $navIds      = array_column($navSteps, 'id');
         $currentIdx  = ($k = array_search($step, $navIds)) !== false ? $k : -1;
@@ -66,7 +65,7 @@
          x-data="{
              open: false,
              steps: ['welcome','details','activity','goal','eating','context','result'],
-             labels: { welcome:'Welcome', details:'Details', activity:'Activity', goal:'Goal', eating:'Eating', context:'Context', result:'Result' },
+             labels: {{ json_encode(array_column($navSteps, 'label', 'id'), JSON_UNESCAPED_UNICODE) }},
              get cur() { return this.steps.indexOf($wire.step); },
              get show() { return !['calc','done'].includes($wire.step); }
          }"
@@ -116,12 +115,12 @@
                         <x-brand-ring :size="56" :stroke="6" :progress="1" color="#059669" track-color="#d1fae5" />
                     </div>
                     <h1 class="font-serif text-4xl md:text-5xl text-zinc-900 dark:text-zinc-50 leading-tight tracking-tight mb-4">
-                        Welcome, {{ $name }}.
-                        <br>Let's set your
-                        <em class="text-emerald-600 not-italic">daily target.</em>
+                        {{ __('Welcome') }}, {{ $name }}.
+                        <br>{{ __("Let's set your") }}
+                        <em class="text-emerald-600 not-italic">{{ __('daily target.') }}</em>
                     </h1>
                     <p class="text-zinc-500 dark:text-zinc-400 text-base leading-relaxed mb-10 max-w-sm">
-                        Calorie Tracker turns a sentence — "chicken bowl, large" — into calories and macros. First, two minutes to set your goal.
+                        {{ __('Calorie Tracker turns a sentence — "chicken bowl, large" — into calories and macros. First, two minutes to set your goal.') }}
                     </p>
 
                     <div class="space-y-3">
@@ -130,10 +129,10 @@
                                 class="w-full flex items-center justify-between gap-4 px-5 py-4 rounded-xl bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition group">
                             <div class="text-start">
                                 <div class="flex items-center gap-2 mb-0.5">
-                                    <span class="text-sm font-semibold">Set up with AI</span>
-                                    <span class="font-mono text-[9px] font-semibold uppercase tracking-widest bg-emerald-500 text-white px-2 py-0.5 rounded-full">Recommended</span>
+                                    <span class="text-sm font-semibold">{{ __('Set up with AI') }}</span>
+                                    <span class="font-mono text-[9px] font-semibold uppercase tracking-widest bg-emerald-500 text-white px-2 py-0.5 rounded-full">{{ __('Recommended') }}</span>
                                 </div>
-                                <p class="text-xs text-zinc-400 dark:text-zinc-500">Four quick questions. We calculate the rest.</p>
+                                <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('Four quick questions. We calculate the rest.') }}</p>
                             </div>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform">
                                 <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
@@ -144,8 +143,8 @@
                         <button wire:click="chooseManual"
                                 class="w-full flex items-center justify-between gap-4 px-5 py-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-sm transition group">
                             <div class="text-start">
-                                <p class="text-sm font-semibold mb-0.5">I'll configure it myself</p>
-                                <p class="text-xs text-zinc-400 dark:text-zinc-500">Go to profile and enter targets manually.</p>
+                                <p class="text-sm font-semibold mb-0.5">{{ __("I'll configure it myself") }}</p>
+                                <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('Go to profile and enter targets manually.') }}</p>
                             </div>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-40 group-hover:translate-x-0.5 transition-transform">
                                 <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
@@ -157,14 +156,14 @@
             {{-- ── DETAILS ── --}}
             @elseif($step === 'details')
                 <div class="step-in">
-                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">A few measurements</p>
-                    <h1 class="font-serif text-3xl md:text-4xl text-zinc-900 dark:text-zinc-50 tracking-tight mb-2">Tell us about you.</h1>
-                    <p class="text-sm text-zinc-400 dark:text-zinc-500 mb-8">Used once to calculate your baseline — never shared or used elsewhere.</p>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">{{ __('A few measurements') }}</p>
+                    <h1 class="font-serif text-3xl md:text-4xl text-zinc-900 dark:text-zinc-50 tracking-tight mb-2">{{ __('Tell us about you.') }}</h1>
+                    <p class="text-sm text-zinc-400 dark:text-zinc-500 mb-8">{{ __('Used once to calculate your baseline — never shared or used elsewhere.') }}</p>
 
                     <div class="grid grid-cols-2 gap-4 mb-8">
                         {{-- Name (full width) --}}
                         <div class="col-span-2">
-                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">Name</label>
+                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">{{ __('Name') }}</label>
                             <input wire:model="name" type="text"
                                    class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none transition" />
                             @error('name') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
@@ -172,26 +171,26 @@
 
                         {{-- Age --}}
                         <div>
-                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">Age</label>
+                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">{{ __('Age') }}</label>
                             <div class="relative">
                                 <input wire:model="age" type="number" min="13" max="100"
                                        class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2.5 pr-10 text-sm font-mono text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none transition" />
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none">yrs</span>
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none">{{ __('yrs') }}</span>
                             </div>
                             @error('age') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
                         </div>
 
                         {{-- Sex segmented --}}
                         <div>
-                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">Biological sex</label>
+                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">{{ __('Biological sex') }}</label>
                             <div class="flex rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-0.5 gap-0.5">
                                 <button type="button" wire:click="selectSex('F')"
                                         class="flex-1 py-2 rounded-md text-xs font-semibold transition {{ $sex === 'F' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700' }}">
-                                    Female
+                                    {{ __('Female') }}
                                 </button>
                                 <button type="button" wire:click="selectSex('M')"
                                         class="flex-1 py-2 rounded-md text-xs font-semibold transition {{ $sex === 'M' ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700' }}">
-                                    Male
+                                    {{ __('Male') }}
                                 </button>
                             </div>
                             @error('sex') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
@@ -199,22 +198,22 @@
 
                         {{-- Weight --}}
                         <div>
-                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">Current weight</label>
+                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">{{ __('Current weight') }}</label>
                             <div class="relative">
                                 <input wire:model="weightKg" type="number" min="30" max="300" step="0.1"
                                        class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2.5 pr-8 text-sm font-mono text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none transition" />
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none">kg</span>
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none">{{ __('kg') }}</span>
                             </div>
                             @error('weightKg') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
                         </div>
 
                         {{-- Height --}}
                         <div>
-                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">Height</label>
+                            <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">{{ __('Height') }}</label>
                             <div class="relative">
                                 <input wire:model="heightCm" type="number" min="100" max="230"
                                        class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2.5 pr-8 text-sm font-mono text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 focus:outline-none transition" />
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none">cm</span>
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 pointer-events-none">{{ __('cm') }}</span>
                             </div>
                             @error('heightCm') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
                         </div>
@@ -222,7 +221,7 @@
 
                     <button wire:click="next"
                             class="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20">
-                        Continue
+                        {{ __('Continue') }}
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
                 </div>
@@ -230,16 +229,16 @@
             {{-- ── ACTIVITY ── --}}
             @elseif($step === 'activity')
                 <div class="step-in">
-                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">Activity level</p>
-                    <h1 class="font-serif text-3xl md:text-4xl text-zinc-900 dark:text-zinc-50 tracking-tight mb-2">How active are you?</h1>
-                    <p class="text-sm text-zinc-400 dark:text-zinc-500 mb-8">Roughly. We'll adjust as you log meals and weight over time.</p>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">{{ __('Activity level') }}</p>
+                    <h1 class="font-serif text-3xl md:text-4xl text-zinc-900 dark:text-zinc-50 tracking-tight mb-2">{{ __('How active are you?') }}</h1>
+                    <p class="text-sm text-zinc-400 dark:text-zinc-500 mb-8">{{ __("Roughly. We'll adjust as you log meals and weight over time.") }}</p>
 
                     @php
                         $activities = [
-                            ['id' => 'sedentary', 'title' => 'Sedentary',         'sub' => 'Desk job, little or no exercise.',                    'mult' => '×1.2',   'icon' => 'M12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM9 7h6v6h-1v5h-1v-5h-2v5h-1v-5H9V7z'],
-                            ['id' => 'light',     'title' => 'Lightly active',    'sub' => 'Light walks or 1–2 workouts per week.',               'mult' => '×1.375', 'icon' => 'M13 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM10 21l2-7-3-2 2-5 4 2 3 3M9 14l-2 4'],
-                            ['id' => 'moderate',  'title' => 'Moderately active', 'sub' => 'Workouts 3–5 days a week, mostly on your feet.',       'mult' => '×1.55',  'icon' => 'M14 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM9 21l3-7-3-3 3-4 4 3-2 3 3 5M6 12l3-1'],
-                            ['id' => 'very',      'title' => 'Very active',       'sub' => 'Hard training 6–7 days a week or a physical job.',    'mult' => '×1.725', 'icon' => 'M15 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM6 12l3 1 2-3 3 2-2 4 3 5M14 9l3-2 3 1M4 20l4-2'],
+                            ['id' => 'sedentary', 'title' => __('Sedentary'),         'sub' => __('Desk job, little or no exercise.'),                 'mult' => '×1.2',   'icon' => 'M12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM9 7h6v6h-1v5h-1v-5h-2v5h-1v-5H9V7z'],
+                            ['id' => 'light',     'title' => __('Lightly active'),    'sub' => __('Light walks or 1–2 workouts per week.'),            'mult' => '×1.375', 'icon' => 'M13 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM10 21l2-7-3-2 2-5 4 2 3 3M9 14l-2 4'],
+                            ['id' => 'moderate',  'title' => __('Moderately active'), 'sub' => __('Workouts 3–5 days a week, mostly on your feet.'),   'mult' => '×1.55',  'icon' => 'M14 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM9 21l3-7-3-3 3-4 4 3-2 3 3 5M6 12l3-1'],
+                            ['id' => 'very',      'title' => __('Very active'),       'sub' => __('Hard training 6–7 days a week or a physical job.'), 'mult' => '×1.725', 'icon' => 'M15 3a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM6 12l3 1 2-3 3 2-2 4 3 5M14 9l3-2 3 1M4 20l4-2'],
                         ];
                     @endphp
 
@@ -277,12 +276,12 @@
                     <div class="flex items-center gap-3">
                         <button wire:click="back" class="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                            Back
+                            {{ __('Back') }}
                         </button>
                         <button wire:click="next"
                                 class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
                                 @disabled(!$activity)>
-                            Continue
+                            {{ __('Continue') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>
                     </div>
@@ -291,15 +290,15 @@
             {{-- ── GOAL ── --}}
             @elseif($step === 'goal')
                 <div class="step-in">
-                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">Your goal</p>
-                    <h1 class="font-serif text-3xl md:text-4xl text-zinc-900 dark:text-zinc-50 tracking-tight mb-2">What are you aiming for?</h1>
-                    <p class="text-sm text-zinc-400 dark:text-zinc-500 mb-8">Shapes your daily calorie target and macro split. Change it anytime in Profile.</p>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-2">{{ __('Your goal') }}</p>
+                    <h1 class="font-serif text-3xl md:text-4xl text-zinc-900 dark:text-zinc-50 tracking-tight mb-2">{{ __('What are you aiming for?') }}</h1>
+                    <p class="text-sm text-zinc-400 dark:text-zinc-500 mb-8">{{ __('Shapes your daily calorie target and macro split. Change it anytime in Profile.') }}</p>
 
                     @php
                         $goals = [
-                            ['id' => 'lose',     'title' => 'Lose weight',   'sub' => 'A gentle calorie deficit — about 0.5 kg per week.',       'delta' => '−500 kcal/day', 'icon' => 'M5 9l7 7 7-7M5 5h14'],
-                            ['id' => 'maintain', 'title' => 'Maintain',      'sub' => 'Hold steady at your current weight.',                     'delta' => '0',            'icon' => 'M4 9h16M4 15h16'],
-                            ['id' => 'build',    'title' => 'Build muscle',  'sub' => 'A small surplus paired with strength training.',          'delta' => '+300 kcal/day', 'icon' => 'M5 15l7-7 7 7M5 19h14'],
+                            ['id' => 'lose',     'title' => __('Lose weight'),   'sub' => __('A gentle calorie deficit — about 0.5 kg per week.'), 'delta' => '−500 kcal/day', 'icon' => 'M5 9l7 7 7-7M5 5h14'],
+                            ['id' => 'maintain', 'title' => __('Maintain'),      'sub' => __('Hold steady at your current weight.'),               'delta' => '0',            'icon' => 'M4 9h16M4 15h16'],
+                            ['id' => 'build',    'title' => __('Build muscle'),  'sub' => __('A small surplus paired with strength training.'),    'delta' => '+300 kcal/day', 'icon' => 'M5 15l7-7 7 7M5 19h14'],
                         ];
                     @endphp
 
@@ -342,8 +341,8 @@
                                 </svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Something else</p>
-                                <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">Body recomp, performance, or anything in between.</p>
+                                <p class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{{ __('Something else') }}</p>
+                                <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{{ __('Body recomp, performance, or anything in between.') }}</p>
                             </div>
                             <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition
                                 {{ $goal === 'other' ? 'border-emerald-600 bg-emerald-600' : 'border-zinc-200 dark:border-zinc-600' }}">
@@ -356,9 +355,9 @@
                         {{-- Free-text field, shown when "Something else" is selected --}}
                         @if($goal === 'other')
                             <div class="pt-1">
-                                <textarea wire:model="goalNotes"
+                                <textarea wire:model.live.debounce.300ms="goalNotes"
                                           rows="3"
-                                          placeholder="e.g. lose fat while building muscle, train for a marathon, recover after injury..."
+                                          placeholder="{{ __('e.g. lose fat while building muscle, train for a marathon, recover after injury...') }}"
                                           class="w-full px-4 py-3 text-sm rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none transition"
                                 ></textarea>
                                 @error('goalNotes') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
@@ -370,12 +369,12 @@
                     <div class="flex items-center gap-3">
                         <button wire:click="back" class="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                            Back
+                            {{ __('Back') }}
                         </button>
                         <button wire:click="next"
                                 class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
                                 @disabled(!$goal || ($goal === 'other' && !trim($goalNotes)))>
-                            Continue
+                            {{ __('Continue') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>
                     </div>
@@ -384,15 +383,15 @@
             {{-- ── EATING HABITS ── --}}
             @elseif($step === 'eating')
                 <div class="step-in">
-                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">Eating habits</p>
-                    <h1 class="text-3xl md:text-4xl font-serif text-zinc-900 dark:text-zinc-50 mb-2 leading-tight">How do you usually eat?</h1>
-                    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Helps the AI set a more accurate target for your lifestyle.</p>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">{{ __('Eating habits') }}</p>
+                    <h1 class="text-3xl md:text-4xl font-serif text-zinc-900 dark:text-zinc-50 mb-2 leading-tight">{{ __('How do you usually eat?') }}</h1>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-8">{{ __('Helps the AI set a more accurate target for your lifestyle.') }}</p>
 
                     <div class="space-y-3 mb-8">
                         @foreach([
-                            ['id' => 'home', 'icon' => 'home', 'title' => 'Cook at home', 'sub' => 'You control ingredients and portions most of the time.'],
-                            ['id' => 'out',  'icon' => 'fork', 'title' => 'Mostly eat out', 'sub' => 'Restaurants, takeaway, or delivery most days.'],
-                            ['id' => 'mix',  'icon' => 'mix',  'title' => 'Mix of both',   'sub' => 'Some home cooking, some eating out.'],
+                            ['id' => 'home', 'icon' => 'home', 'title' => __('Cook at home'),   'sub' => __('You control ingredients and portions most of the time.')],
+                            ['id' => 'out',  'icon' => 'fork', 'title' => __('Mostly eat out'), 'sub' => __('Restaurants, takeaway, or delivery most days.')],
+                            ['id' => 'mix',  'icon' => 'mix',  'title' => __('Mix of both'),    'sub' => __('Some home cooking, some eating out.')],
                         ] as $opt)
                             <button wire:click="selectEatingHabit('{{ $opt['id'] }}')"
                                     class="w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition text-left
@@ -426,12 +425,12 @@
                     <div class="flex items-center gap-3">
                         <button wire:click="back" class="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                            Back
+                            {{ __('Back') }}
                         </button>
                         <button wire:click="next"
                                 class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
                                 @disabled(!$eatingHabit)>
-                            Continue
+                            {{ __('Continue') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>
                     </div>
@@ -440,28 +439,28 @@
             {{-- ── HEALTH CONTEXT ── --}}
             @elseif($step === 'context')
                 <div class="step-in">
-                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">Almost there</p>
-                    <h1 class="text-3xl md:text-4xl font-serif text-zinc-900 dark:text-zinc-50 mb-2 leading-tight">Anything else we should know?</h1>
-                    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-8">Optional — but the more context the AI has, the better your target.</p>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">{{ __('Almost there') }}</p>
+                    <h1 class="text-3xl md:text-4xl font-serif text-zinc-900 dark:text-zinc-50 mb-2 leading-tight">{{ __('Anything else we should know?') }}</h1>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-8">{{ __('Optional — but the more context the AI has, the better your target.') }}</p>
 
                     <div class="mb-4">
                         <textarea
                             wire:model="healthNotes"
                             rows="5"
-                            placeholder="e.g. type 2 diabetes, vegetarian, bad knees, shift work, high stress, poor sleep..."
+                            placeholder="{{ __('e.g. type 2 diabetes, vegetarian, food allergies, bad knees, shift work, high stress, poor sleep...') }}"
                             class="w-full px-4 py-3 text-sm rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/60 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none transition"
                         ></textarea>
-                        <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-2">This stays private and is only used to personalise your calorie target.</p>
+                        <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-2">{{ __('This stays private and is only used to personalise your calorie target.') }}</p>
                     </div>
 
                     <div class="flex items-center gap-3">
                         <button wire:click="back" class="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                            Back
+                            {{ __('Back') }}
                         </button>
                         <button wire:click="next"
                                 class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20">
-                            Calculate my target
+                            {{ __('Calculate my target') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>
                     </div>
@@ -481,12 +480,12 @@
                         </div>
                     </div>
                     <p class="font-mono text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500">
-                        CALCULATING
+                        {{ __('CALCULATING') }}
                         <span x-data="{ d: 0 }" x-init="setInterval(() => d = (d+1)%4, 400)"
                               x-text="['', '●', '●●', '●●●'][d]" class="inline-block w-6 text-start"></span>
                     </p>
                     <p class="text-xs text-zinc-400 dark:text-zinc-600 mt-3 max-w-xs">
-                        Mifflin–St Jeor for BMR, your activity multiplier on top, then a goal-adjusted deficit or surplus.
+                        {{ __('Mifflin–St Jeor for BMR, your activity multiplier on top, then a goal-adjusted deficit or surplus.') }}
                     </p>
                 </div>
 
@@ -494,7 +493,7 @@
             @elseif($step === 'result')
                 @php $final = $target + $adjust; @endphp
                 <div class="step-in">
-                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-6 text-center">Your daily target</p>
+                    <p class="text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-6 text-center">{{ __('Your daily target') }}</p>
 
                     {{-- Ring --}}
                     <div class="flex flex-col items-center mb-6">
@@ -504,7 +503,7 @@
                                 <span class="font-mono text-4xl font-bold text-zinc-900 dark:text-zinc-50 tabular-nums tracking-tight leading-none">
                                     {{ number_format($final) }}
                                 </span>
-                                <span class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">kcal / day</span>
+                                <span class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{{ __('kcal / day') }}</span>
                             </div>
                         </div>
 
@@ -515,9 +514,9 @@
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             </button>
                             <span class="text-xs font-medium text-zinc-600 dark:text-zinc-400 min-w-[80px] text-center">
-                                @if($adjust === 0) Adjust ±100
-                                @elseif($adjust > 0) Adjusted +{{ $adjust }}
-                                @else Adjusted {{ $adjust }}
+                                @if($adjust === 0) {{ __('Adjust ±100') }}
+                                @elseif($adjust > 0) {{ __('Adjusted') }} +{{ $adjust }}
+                                @else {{ __('Adjusted') }} {{ $adjust }}
                                 @endif
                             </span>
                             <button wire:click="adjust(100)"
@@ -533,9 +532,9 @@
                     @endphp
                     <div class="grid grid-cols-3 gap-2.5 mb-5">
                         @foreach([
-                            ['label' => 'P', 'name' => 'Protein', 'val' => $protein, 'color' => '#4f46e5', 'bg' => 'bg-indigo-500'],
-                            ['label' => 'C', 'name' => 'Carbs',   'val' => $carbs,   'color' => '#f59e0b', 'bg' => 'bg-amber-400'],
-                            ['label' => 'F', 'name' => 'Fat',     'val' => $fat,     'color' => '#f43f5e', 'bg' => 'bg-rose-500'],
+                            ['label' => 'P', 'name' => __('Protein'), 'val' => $protein, 'color' => '#4f46e5', 'bg' => 'bg-indigo-500'],
+                            ['label' => 'C', 'name' => __('Carbs'),   'val' => $carbs,   'color' => '#f59e0b', 'bg' => 'bg-amber-400'],
+                            ['label' => 'F', 'name' => __('Fat'),     'val' => $fat,     'color' => '#f43f5e', 'bg' => 'bg-rose-500'],
                         ] as $m)
                             <div class="rounded-xl border border-zinc-100 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-3">
                                 <div class="flex items-center gap-1 mb-2">
@@ -562,9 +561,7 @@
                             @if($aiExplanation)
                                 {{ $aiExplanation }}
                             @else
-                                From <span class="font-mono font-semibold">{{ number_format($bmr) }}</span> kcal baseline (Mifflin–St Jeor)
-                                × {{ $activityName }} activity = <span class="font-mono font-semibold">{{ number_format($tdee) }}</span> kcal to maintain.
-                                Adjusted for "{{ $goal }}".
+                                {{ __('From :bmr kcal baseline (Mifflin–St Jeor) × :activity activity = :tdee kcal to maintain. Adjusted for your goal.', ['bmr' => number_format($bmr), 'activity' => $activityName, 'tdee' => number_format($tdee)]) }}
                             @endif
                         </p>
                     </div>
@@ -573,11 +570,11 @@
                     <button wire:click="confirm"
                             class="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 mb-3">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Start tracking
+                        {{ __('Start tracking') }}
                     </button>
                     <div class="text-center">
                         <button wire:click="back" class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
-                            ← Back
+                            ← {{ __('Back') }}
                         </button>
                     </div>
                 </div>
@@ -593,19 +590,19 @@
                             </svg>
                         </div>
                     </div>
-                    <h2 class="font-serif text-2xl text-zinc-900 dark:text-zinc-50 mb-2">Configure it your way.</h2>
+                    <h2 class="font-serif text-2xl text-zinc-900 dark:text-zinc-50 mb-2">{{ __('Configure it your way.') }}</h2>
                     <p class="text-sm text-zinc-400 dark:text-zinc-500 max-w-xs mb-8">
-                        We'll drop you into your profile. Set your daily calorie target manually — change it anytime.
+                        {{ __("We'll drop you into your profile. Set your daily calorie target manually — change it anytime.") }}
                     </p>
                     <div class="flex items-center gap-3">
                         <button wire:click="back"
                                 class="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                            Change my mind
+                            {{ __('Change my mind') }}
                         </button>
                         <button wire:click="chooseManual"
                                 class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition">
-                            Take me to profile
+                            {{ __('Take me to profile') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>
                     </div>
@@ -624,10 +621,10 @@
                             </svg>
                         </div>
                     </div>
-                    <h2 class="font-serif text-3xl text-zinc-900 dark:text-zinc-50 mb-2">You're set, {{ explode(' ', $name)[0] }}.</h2>
+                    <h2 class="font-serif text-3xl text-zinc-900 dark:text-zinc-50 mb-2">{{ __("You're set,") }} {{ explode(' ', $name)[0] }}.</h2>
                     <p class="text-sm text-zinc-400 dark:text-zinc-500">
-                        Daily target locked at <span class="font-mono font-semibold text-zinc-700 dark:text-zinc-300">{{ number_format($finalTarget) }} kcal</span>.
-                        Log your first meal whenever you're ready.
+                        {{ __('Daily target locked at') }} <span class="font-mono font-semibold text-zinc-700 dark:text-zinc-300">{{ number_format($finalTarget) }} {{ __('kcal') }}</span>.
+                        {{ __("Log your first meal whenever you're ready.") }}
                     </p>
                 </div>
 

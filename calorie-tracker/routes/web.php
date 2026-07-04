@@ -9,15 +9,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     if (auth()->check()) return redirect()->route('home');
     return view('landing');
-});
+})->name('landing');
 
 Route::get('/home', Homepage::class)->name('home');
 
 Route::get('/onboarding', Onboarding::class)->middleware('auth')->name('onboarding');
 
 Route::post('/onboarding/reset', function () {
-    auth()->user()->update(['onboarded_at' => null]);
-    return redirect()->route('onboarding');
+    // Don't revoke onboarded status — the user stays free to navigate away mid-flow
+    return redirect()->route('onboarding', ['recalculate' => 1]);
 })->middleware('auth')->name('onboarding.reset');
 
 Route::middleware(['auth', 'verified'])->group(function () {

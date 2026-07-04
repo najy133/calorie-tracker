@@ -312,11 +312,11 @@
                                         {{ number_format($entry->calories) }} kcal
                                     </span>
                                     <button wire:click="startEdit({{ $entry->id }})"
-                                            class="text-xs text-zinc-300 dark:text-zinc-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition opacity-0 group-hover:opacity-100"
+                                            class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-indigo-500 dark:hover:text-indigo-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                             title="Edit entry">✎</button>
                                     <button wire:click="delete({{ $entry->id }})"
                                             wire:confirm="{{ __('Remove this entry?') }}"
-                                            class="text-xs text-zinc-300 dark:text-zinc-600 hover:text-rose-500 dark:hover:text-rose-400 transition opacity-0 group-hover:opacity-100"
+                                            class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-rose-500 dark:hover:text-rose-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                             title="Remove entry">✕</button>
                                 </div>
                             </div>

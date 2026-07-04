@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Calorie Tracker') }} — {{ __('Log a meal before you forget it.') }}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>{{ config('app.name', 'Mealo') }} — {{ __('Log a meal before you forget it.') }}</title>
 
     <script>
         (function(){
@@ -264,7 +265,7 @@
 
     <footer class="border-t border-zinc-100 dark:border-zinc-800 py-6">
         <div class="max-w-5xl mx-auto px-6 md:px-10 flex items-center justify-between text-xs text-zinc-400 dark:text-zinc-600">
-            <span>{{ __('Calorie Tracker') }}</span>
+            <x-wordmark class="text-sm !font-medium text-zinc-400 dark:text-zinc-600" />
             <span>&copy; {{ date('Y') }}</span>
         </div>
     </footer>

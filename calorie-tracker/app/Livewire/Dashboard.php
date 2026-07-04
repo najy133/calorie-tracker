@@ -17,10 +17,18 @@ class Dashboard extends Component
     public ?int $editingId = null;
     public string $editFood = '';
 
+    // How many days of history to show before "Show earlier"
+    public int $visibleDays = 3;
+
     public function mount(): void
     {
         $this->dailyGoal = auth()->user()->daily_goal ?? 2000;
         $this->streak    = $this->calculateStreak();
+    }
+
+    public function showMore(): void
+    {
+        $this->visibleDays += 4;
     }
 
     public function startEdit(int $id): void
@@ -47,6 +55,11 @@ class Dashboard extends Component
 
         try {
             $result = app(CalorieEstimator::class)->estimate($this->editFood);
+
+            if ($result['not_food']) {
+                $this->addError('editFood', __("That doesn't look like food. Try something like \"chicken sandwich\" or \"2 eggs and toast\"."));
+                return;
+            }
 
             Entry::where('id', $this->editingId)
                 ->where('user_id', auth()->id())
@@ -104,14 +117,18 @@ class Dashboard extends Component
 
         $weeklyAverage = (int) round($weeklyData->average('calories'));
 
-        // History grouped by day — last 50 entries
-        $recentEntries = Entry::where('user_id', $userId)
+        // History grouped by day
+        $entriesByDay = Entry::where('user_id', $userId)
             ->orderBy('created_at', 'desc')
-            ->limit(50)
+            ->limit(200)
             ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'created_at'])
             ->groupBy(fn ($e) => $e->created_at->toDateString());
 
-        return view('livewire.dashboard', compact('weeklyData', 'weeklyAverage', 'recentEntries'))
+        $totalDays     = $entriesByDay->count();
+        $recentEntries = $entriesByDay->take($this->visibleDays);
+        $hasMoreDays   = $totalDays > $this->visibleDays;
+
+        return view('livewire.dashboard', compact('weeklyData', 'weeklyAverage', 'recentEntries', 'hasMoreDays'))
             ->layout('layouts.app');
     }
 }

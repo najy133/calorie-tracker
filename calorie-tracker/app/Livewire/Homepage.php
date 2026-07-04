@@ -35,6 +35,14 @@ class Homepage extends Component
         $this->streak        = $this->calculateStreak();
     }
 
+    public function updatedFood(): void
+    {
+        // Editing the food text invalidates the current estimate — clear it so the
+        // stale preview (and its Save button) can't apply to the new text.
+        $this->reset('calories', 'protein', 'carbs', 'fat', 'breakdown', 'explanation');
+        $this->resetErrorBag('food');
+    }
+
     public function estimate(): void
     {
         $this->validate();
@@ -51,6 +59,14 @@ class Homepage extends Component
 
         try {
             $result = app(CalorieEstimator::class)->estimate($this->food, app()->getLocale());
+
+            if ($result['not_food']) {
+                // Clear any previous estimate so a stale value can't linger (or be saved)
+                $this->reset('calories', 'protein', 'carbs', 'fat', 'breakdown', 'explanation');
+                $this->addError('food', __("That doesn't look like food. Try something like \"chicken sandwich\" or \"2 eggs and toast\"."));
+                return;
+            }
+
             $this->calories    = $result['calories'];
             $this->protein     = $result['protein'];
             $this->carbs       = $result['carbs'];
@@ -110,6 +126,11 @@ class Homepage extends Component
 
         try {
             $result = app(CalorieEstimator::class)->estimate($this->editFood, app()->getLocale());
+
+            if ($result['not_food']) {
+                $this->addError('editFood', __("That doesn't look like food. Try something like \"chicken sandwich\" or \"2 eggs and toast\"."));
+                return;
+            }
 
             Entry::where('id', $this->editingId)
                 ->where('user_id', auth()->id())

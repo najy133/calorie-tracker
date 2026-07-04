@@ -31,7 +31,7 @@ it('allows guests to estimate without auth', function () {
         ->shouldReceive('estimate')
         ->with('an apple', \Mockery::any())
         ->once()
-        ->andReturn(['calories' => 95, 'protein' => 0, 'carbs' => 25, 'fat' => 0, 'explanation' => 'Assumed one medium apple.', 'breakdown' => []]);
+        ->andReturn(['not_food' => false, 'calories' => 95, 'protein' => 0, 'carbs' => 25, 'fat' => 0, 'explanation' => 'Assumed one medium apple.', 'breakdown' => []]);
 
     Livewire::test(Homepage::class)
         ->set('food', 'an apple')
@@ -105,13 +105,42 @@ it('estimates calories using the AI service', function () {
         ->shouldReceive('estimate')
         ->with('2 scrambled eggs', \Mockery::any())
         ->once()
-        ->andReturn(['calories' => 180, 'protein' => 12, 'carbs' => 1, 'fat' => 14, 'explanation' => 'Assumed two large eggs, scrambled in butter.', 'breakdown' => []]);
+        ->andReturn(['not_food' => false, 'calories' => 180, 'protein' => 12, 'carbs' => 1, 'fat' => 14, 'explanation' => 'Assumed two large eggs, scrambled in butter.', 'breakdown' => []]);
 
     Livewire::test(Homepage::class)
         ->set('food', '2 scrambled eggs')
         ->call('estimate')
         ->assertSet('calories', 180)
         ->assertSet('explanation', 'Assumed two large eggs, scrambled in butter.');
+});
+
+it('shows an error and clears a stale estimate when the input is not food', function () {
+    $this->mock(CalorieEstimator::class)
+        ->shouldReceive('estimate')
+        ->with('test', \Mockery::any())
+        ->once()
+        ->andReturn(['not_food' => true]);
+
+    // Start with a leftover estimate from a previous valid food, then re-estimate
+    // with a non-food input — the old value must not linger (or be saveable).
+    Livewire::test(Homepage::class)
+        ->set('calories', 95)
+        ->set('protein', 5)
+        ->set('food', 'test')
+        ->call('estimate')
+        ->assertHasErrors('food')
+        ->assertSet('calories', 0)
+        ->assertSet('protein', 0);
+});
+
+it('clears a stale estimate when the food text is edited', function () {
+    // A prior estimate exists; editing the food text must invalidate it so the
+    // Save button (shown when food && calories) can't apply the old numbers.
+    Livewire::test(Homepage::class)
+        ->set('food', 'apple')
+        ->set('calories', 95)
+        ->set('food', 'banana')
+        ->assertSet('calories', 0);
 });
 
 it('saves an entry scoped to the authenticated user and refreshes totals', function () {
