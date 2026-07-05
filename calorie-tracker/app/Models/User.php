@@ -89,6 +89,8 @@ class User extends Authenticatable
             'height_cm'         => 'integer',
             'weight_kg'         => 'decimal:2',
             'onboarded_at'      => 'datetime',
+            // Encrypt the most personal free-text field at rest
+            'health_notes'      => 'encrypted',
         ];
     }
 
