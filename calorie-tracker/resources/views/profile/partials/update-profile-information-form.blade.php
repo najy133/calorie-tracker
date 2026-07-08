@@ -1,10 +1,7 @@
 <section>
-    <header class="mb-5">
-        <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-50">{{ __('Profile information') }}</h2>
-        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            {{ __('Update your name, email, and daily calorie target.') }}
-        </p>
-    </header>
+    <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
+        {{ __('Update your name, email, and daily calorie target.') }}
+    </p>
 
     <form id="send-verification" method="post" action="{{ route('verification.send') }}">
         @csrf

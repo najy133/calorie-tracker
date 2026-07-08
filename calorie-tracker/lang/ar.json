@@ -244,5 +244,12 @@
     "Edit entry": "تعديل الإدخال",
     "Remove entry": "حذف الإدخال",
     "No meals logged this week.": "لا توجد وجبات مسجلة هذا الأسبوع.",
-    "No meals logged on this day.": "لا توجد وجبات مسجلة في هذا اليوم."
+    "No meals logged on this day.": "لا توجد وجبات مسجلة في هذا اليوم.",
+    "Today's meals": "وجبات اليوم",
+    ":value left": ":value متبقية",
+    ":value over": ":value زائدة",
+    "goal reached": "تم بلوغ الهدف",
+    "Saving this puts you at": "الحفظ يجعلك عند",
+    "Describe what you ate — e.g. chicken shawarma bowl, large": "صِف ما أكلته — مثال: طبق شاورما دجاج كبير",
+    "Type what you ate in plain English and let AI do the counting.": "اكتب ما أكلته بلغة بسيطة ودع الذكاء الاصطناعي يحسب السعرات."
 }
