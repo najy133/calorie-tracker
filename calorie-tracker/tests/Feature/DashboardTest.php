@@ -18,6 +18,7 @@ it('renders the dashboard for authenticated users', function () {
 });
 
 it('shows correct weekly calorie totals', function () {
+    \Illuminate\Support\Carbon::setTestNow('2024-01-07'); // a Sunday — today + yesterday sit in one Mon–Sun week
     $user = User::factory()->create(['daily_goal' => 2000]);
 
     Entry::factory()->create(['user_id' => $user->id, 'calories' => 800, 'created_at' => today()]);
@@ -33,9 +34,11 @@ it('shows correct weekly calorie totals', function () {
 
     expect($today['calories'])->toBe(1200);
     expect($yesterday['calories'])->toBe(600);
+    \Illuminate\Support\Carbon::setTestNow();
 });
 
-it('shows weekly average correctly', function () {
+it('shows weekly average over elapsed days', function () {
+    \Illuminate\Support\Carbon::setTestNow('2024-01-07'); // a Sunday — all 7 days of the week have elapsed
     $user = User::factory()->create(['daily_goal' => 2000]);
 
     Entry::factory()->create(['user_id' => $user->id, 'calories' => 1400, 'created_at' => today()]);
@@ -43,8 +46,9 @@ it('shows weekly average correctly', function () {
 
     $component = Livewire::actingAs($user)->test(Dashboard::class);
 
-    // 2100 total over 7 days = 300 avg
+    // 2100 total over 7 elapsed days = 300 avg
     expect($component->viewData('weeklyAverage'))->toBe(300);
+    \Illuminate\Support\Carbon::setTestNow();
 });
 
 it('calculates streak correctly', function () {
