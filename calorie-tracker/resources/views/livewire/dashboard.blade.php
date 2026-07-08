@@ -8,7 +8,7 @@
         </div>
         <div class="flex items-center gap-3 shrink-0">
             @if($streak > 0)
-                <span class="hidden sm:inline text-sm font-medium text-amber-600 dark:text-amber-400 whitespace-nowrap">🔥 {{ __(':count-day streak', ['count' => $streak]) }}</span>
+                <span class="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 dark:text-amber-400 whitespace-nowrap"><x-flame />{{ __(':count-day streak', ['count' => $streak]) }}</span>
             @endif
             <a href="{{ route('home') }}"
                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-600/20 whitespace-nowrap">
