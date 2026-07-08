@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+[x-cloak] { display: none !important; }
+
 @source '../views/**/*.blade.php';
 @source '../js/**/*.js';
 @source '../../app/View/Components/**/*.php';
