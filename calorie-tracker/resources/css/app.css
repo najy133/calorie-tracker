@@ -104,13 +104,14 @@
 /* Streak flame — gentle flicker from the base, like a small candle */
 @keyframes flame-flicker {
     0%, 100% { transform: scale(1) rotate(0deg);      opacity: 1; }
-    25%      { transform: scale(1.06) rotate(-2deg);  opacity: 0.92; }
-    50%      { transform: scale(0.97) rotate(1.5deg); opacity: 1; }
-    75%      { transform: scale(1.03) rotate(-1deg);  opacity: 0.95; }
+    20%      { transform: scale(1.12, 0.92) rotate(-4deg); opacity: 0.9; }
+    40%      { transform: scale(0.94, 1.1) rotate(3deg);   opacity: 1; }
+    60%      { transform: scale(1.08, 0.96) rotate(-2deg); opacity: 0.92; }
+    80%      { transform: scale(0.97, 1.04) rotate(2deg);  opacity: 1; }
 }
 .flame-flicker {
-    animation: flame-flicker 1.8s ease-in-out infinite;
-    transform-origin: 50% 90%;
+    animation: flame-flicker 1.4s ease-in-out infinite;
+    transform-origin: 50% 95%;
 }
 @media (prefers-reduced-motion: reduce) {
     .flame-flicker { animation: none; }

@@ -15,7 +15,7 @@
         <div class="flex items-center gap-3 shrink-0">
             @auth
                 @if($streak > 0)
-                    <span class="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 dark:text-amber-400 whitespace-nowrap"><x-flame />{{ __(':count-day streak', ['count' => $streak]) }}</span>
+                    <span class="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 dark:text-amber-400 whitespace-nowrap"><x-flame />{{ __(':count-day streak', ['count' => $streak]) }}</span>
                 @endif
             @endauth
             @guest
