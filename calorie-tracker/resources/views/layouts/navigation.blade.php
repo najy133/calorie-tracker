@@ -55,7 +55,7 @@
                     </a>
 
                     <a href="{{ route('home') }}"
-                       class="inline-flex items-center px-3.5 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 transition">
+                       class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition">
                         {{ __('Log Meal') }}
                     </a>
 
@@ -73,11 +73,11 @@
                     </form>
                 @else
                     <a href="{{ route('login') }}"
-                       class="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition">
+                       class="inline-flex items-center px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition">
                         {{ __('Log in') }}
                     </a>
                     <a href="{{ route('register') }}"
-                       class="inline-flex items-center px-3.5 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 transition">
+                       class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition">
                         {{ __('Sign up free') }}
                     </a>
                 @endauth
