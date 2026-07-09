@@ -63,16 +63,18 @@
                     {{ __('Type what you ate in plain English. No barcode scanning, no database — just your calories and macros back in seconds.') }}
                 </p>
 
-                <div class="flex items-center gap-6">
-                    <a href="{{ route('register') }}"
-                       class="inline-flex items-center px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors duration-150 shadow-sm shadow-emerald-600/20">
-                        {{ __('Get started free') }}
-                    </a>
+                <div class="flex items-center gap-3 flex-wrap">
                     <a href="{{ route('home') }}"
-                       class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors underline underline-offset-4 decoration-zinc-200 dark:decoration-zinc-700">
+                       class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors duration-150 shadow-sm shadow-emerald-600/20">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg>
                         {{ __('Try it first') }}
                     </a>
+                    <a href="{{ route('register') }}"
+                       class="inline-flex items-center px-5 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition">
+                        {{ __('Get started free') }}
+                    </a>
                 </div>
+                <p class="mt-4 text-xs text-zinc-400 dark:text-zinc-500">{{ __('No account needed to try it — sign up later to save your meals.') }}</p>
             </div>
 
             {{-- Right: app mockup --}}
@@ -256,6 +258,10 @@
                     {{ __('Create free account →') }}
                 </a>
                 <p class="mt-3 text-xs text-zinc-400 dark:text-zinc-600">
+                    <a href="{{ route('home') }}" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition font-medium">{{ __('Try it first') }}</a>
+                    {{ __('— no account needed.') }}
+                </p>
+                <p class="mt-1.5 text-xs text-zinc-400 dark:text-zinc-600">
                     {{ __('Already have one?') }}
                     <a href="{{ route('login') }}" class="hover:text-zinc-600 dark:hover:text-zinc-400 transition underline underline-offset-2">{{ __('Log in') }}</a>
                 </p>

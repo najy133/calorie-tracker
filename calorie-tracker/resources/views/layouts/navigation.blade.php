@@ -118,12 +118,17 @@
                             </button>
                         </form>
 
+                        <a href="{{ route('home') }}"
+                           class="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition px-1 whitespace-nowrap">
+                            {{ __('Try it first') }}
+                        </a>
+
                         <a href="{{ route('login') }}"
-                           class="inline-flex items-center px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition">
+                           class="inline-flex items-center px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition whitespace-nowrap">
                             {{ __('Log in') }}
                         </a>
                         <a href="{{ route('register') }}"
-                           class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition">
+                           class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition whitespace-nowrap">
                             {{ __('Sign up free') }}
                         </a>
                     @endauth
@@ -192,6 +197,10 @@
                     </button>
                 </form>
             @else
+                <a href="{{ route('home') }}"
+                   class="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
+                    {{ __('Try it first') }}
+                </a>
                 <a href="{{ route('login') }}"
                    class="block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition">
                     {{ __('Log in') }}
