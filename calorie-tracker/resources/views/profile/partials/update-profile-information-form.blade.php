@@ -81,8 +81,9 @@
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 
             <button type="submit" form="onboarding-reset-form"
-                    class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
-                {{ __('Recalculate target with AI →') }}
+                    class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-emerald-200 dark:border-emerald-800/60 text-sm font-medium text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-300 dark:hover:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg>
+                {{ __('Recalculate target with AI') }}
             </button>
 
             @if (session('status') === 'profile-updated')
