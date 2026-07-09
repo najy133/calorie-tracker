@@ -68,23 +68,48 @@
         <div class="relative z-10 px-6 md:px-8 mb-4">
             <div class="max-w-[560px] mx-auto">
 
-                {{-- Pills: desktop only --}}
-                <div class="hidden md:flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+                {{-- Stepper: desktop only. Numbered nodes + connectors read as
+                     navigable steps (done = check, current = ring, upcoming = muted). --}}
+                <div class="hidden md:flex items-start">
                     @foreach($navSteps as $idx => $s)
-                        <button wire:click="jumpTo('{{ $s['id'] }}')"
-                                class="shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-all whitespace-nowrap
-                                    {{ $idx === $currentIdx
-                                        ? 'bg-emerald-600 text-white border-emerald-600 cursor-default'
-                                        : ($idx < $currentIdx
-                                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer'
-                                            : 'bg-transparent text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 cursor-pointer') }}">
-                            {{ $s['label'] }}
-                        </button>
+                        @php $done = $idx < $currentIdx; $current = $idx === $currentIdx; @endphp
+                        <div class="flex-1 flex flex-col items-center">
+                            <div class="flex items-center w-full">
+                                {{-- left connector --}}
+                                <div class="h-0.5 flex-1 rounded-full {{ $idx === 0 ? 'opacity-0' : ($idx <= $currentIdx ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-700') }}"></div>
+
+                                <button type="button" wire:click="jumpTo('{{ $s['id'] }}')"
+                                        @if($current) aria-current="step" @endif
+                                        title="{{ $s['label'] }}"
+                                        class="shrink-0 mx-1 w-7 h-7 rounded-full border flex items-center justify-center text-xs font-semibold transition
+                                            {{ $done
+                                                ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700'
+                                                : ($current
+                                                    ? 'bg-emerald-600 border-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-900/40 cursor-default'
+                                                    : 'bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-600 text-zinc-400 dark:text-zinc-500 hover:border-emerald-400 dark:hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400') }}">
+                                    @if($done)
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    @else
+                                        {{ $idx + 1 }}
+                                    @endif
+                                </button>
+
+                                {{-- right connector --}}
+                                <div class="h-0.5 flex-1 rounded-full {{ $idx === count($navSteps) - 1 ? 'opacity-0' : ($idx < $currentIdx ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-700') }}"></div>
+                            </div>
+                            <span class="mt-2 text-[11px] whitespace-nowrap transition-colors
+                                {{ $current
+                                    ? 'text-zinc-900 dark:text-zinc-50 font-semibold'
+                                    : ($done ? 'text-zinc-600 dark:text-zinc-400' : 'text-zinc-400 dark:text-zinc-600') }}">
+                                {{ $s['label'] }}
+                            </span>
+                        </div>
                     @endforeach
                 </div>
 
+                {{-- Mobile progress bar (mobile uses the floating navigator for jumps) --}}
                 @if($stepNum > 0)
-                    <div class="h-0.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden md:mt-3">
+                    <div class="md:hidden h-0.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
                         <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-700"
                              style="width: {{ ($stepNum / 6) * 100 }}%"></div>
                     </div>
