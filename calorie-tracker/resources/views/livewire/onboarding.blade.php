@@ -68,9 +68,10 @@
         <div class="relative z-10 px-6 md:px-8 mb-4">
             <div class="max-w-[560px] mx-auto">
 
-                {{-- Stepper: desktop only. Numbered nodes + connectors read as
-                     navigable steps (done = check, current = ring, upcoming = muted). --}}
-                <div class="hidden md:flex items-start">
+                {{-- Stepper: numbered nodes + connectors read as navigable steps
+                     (done = check, current = ring, upcoming = muted). Labels show on
+                     desktop; mobile shows the current step name below the nodes. --}}
+                <div class="flex items-start">
                     @foreach($navSteps as $idx => $s)
                         @php $done = $idx < $currentIdx; $current = $idx === $currentIdx; @endphp
                         <div class="flex-1 flex flex-col items-center">
@@ -97,7 +98,7 @@
                                 {{-- right connector --}}
                                 <div class="h-0.5 flex-1 rounded-full {{ $idx === count($navSteps) - 1 ? 'opacity-0' : ($idx < $currentIdx ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-700') }}"></div>
                             </div>
-                            <span class="mt-2 text-[11px] whitespace-nowrap transition-colors
+                            <span class="hidden md:block mt-2 text-[11px] whitespace-nowrap transition-colors
                                 {{ $current
                                     ? 'text-zinc-900 dark:text-zinc-50 font-semibold'
                                     : ($done ? 'text-zinc-600 dark:text-zinc-400' : 'text-zinc-400 dark:text-zinc-600') }}">
@@ -107,60 +108,14 @@
                     @endforeach
                 </div>
 
-                {{-- Mobile progress bar (mobile uses the floating navigator for jumps) --}}
-                @if($stepNum > 0)
-                    <div class="md:hidden h-0.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-700"
-                             style="width: {{ ($stepNum / 6) * 100 }}%"></div>
-                    </div>
-                @endif
+                {{-- Current step name: mobile only (nodes are label-less on mobile) --}}
+                <p class="md:hidden mt-2.5 text-center text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    {{ __('Step :n of :total', ['n' => $currentIdx + 1, 'total' => count($navSteps)]) }}
+                    <span class="text-zinc-900 dark:text-zinc-50">· {{ $navSteps[$currentIdx]['label'] ?? '' }}</span>
+                </p>
             </div>
         </div>
     @endif
-
-    {{-- Floating step navigator: mobile only --}}
-    <div wire:ignore
-         x-data="{
-             open: false,
-             steps: ['welcome','details','activity','goal','eating','context','result'],
-             labels: {{ json_encode(array_column($navSteps, 'label', 'id'), JSON_UNESCAPED_UNICODE) }},
-             get cur() { return this.steps.indexOf($wire.step); },
-             get show() { return !['calc','done'].includes($wire.step); }
-         }"
-         x-show="show"
-         class="fixed bottom-4 right-4 z-50 flex md:hidden flex-col items-end gap-2">
-
-        <div x-show="open"
-             x-transition:enter="transition ease-out duration-150"
-             x-transition:enter-start="opacity-0 translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-100"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-2"
-             class="flex flex-col gap-1.5 items-end">
-            <template x-for="(key, idx) in steps" :key="key">
-                <button
-                    @click="idx !== cur ? ($wire.jumpTo(key), open = false) : null"
-                    :class="{
-                        'bg-emerald-600 text-white border-emerald-600 cursor-default': idx === cur,
-                        'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer': idx !== cur
-                    }"
-                    class="text-xs font-medium px-3 py-1.5 rounded-full border transition whitespace-nowrap shadow-sm"
-                    x-text="labels[key]">
-                </button>
-            </template>
-        </div>
-
-        <button @click="open = !open"
-                class="w-10 h-10 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-md flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-400 transition">
-            <svg x-show="!open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
-            </svg>
-            <svg x-show="open" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-        </button>
-    </div>
 
     {{-- Stage --}}
     <main class="relative z-10 px-6 md:px-8 pb-16 pt-6">
@@ -567,7 +522,7 @@
 
                         {{-- Adjust pill --}}
                         <div class="mt-4 inline-flex items-center gap-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-full px-3 py-2 shadow-sm">
-                            <button wire:click="adjust(-100)"
+                            <button wire:click="nudgeTarget(-100)"
                                     class="w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             </button>
@@ -577,11 +532,19 @@
                                 @else {{ __('Adjusted') }} {{ $adjust }}
                                 @endif
                             </span>
-                            <button wire:click="adjust(100)"
+                            <button wire:click="nudgeTarget(100)"
                                     class="w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             </button>
                         </div>
+
+                        @if($previousTarget > 0 && $previousTarget !== $final)
+                            <p class="mt-3 text-xs text-zinc-400 dark:text-zinc-500 text-center">
+                                {{ __('Was') }} <span class="font-mono">{{ number_format($previousTarget) }}</span>
+                                <span class="mx-1 text-zinc-300 dark:text-zinc-600">·</span>
+                                <span class="font-mono {{ $final >= $previousTarget ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400' }}">{{ $final >= $previousTarget ? '+' : '−' }}{{ number_format(abs($final - $previousTarget)) }}</span>
+                            </p>
+                        @endif
                     </div>
 
                     {{-- Macro split --}}
@@ -624,11 +587,41 @@
                         </p>
                     </div>
 
+                    {{-- Review summary — recap the inputs so saving is a deliberate confirm --}}
+                    @php
+                        $sexLabel    = ['F' => __('Female'), 'M' => __('Male')][$sex] ?? $sex;
+                        $goalLabel   = ['lose' => __('Lose weight'), 'maintain' => __('Maintain'), 'build' => __('Build muscle'), 'other' => __('Custom')][$goal] ?? $goal;
+                        if ($goal === 'other' && $goalNotes) { $goalLabel = \Illuminate\Support\Str::limit($goalNotes, 40); }
+                        $eatingLabel = ['home' => __('Cook at home'), 'out' => __('Mostly eat out'), 'mix' => __('Mix of both')][$eatingHabit] ?? $eatingHabit;
+                        $summaryRows = array_values(array_filter([
+                            $age          ? ['label' => __('Age'),            'value' => $age . ' ' . __('yrs')]     : null,
+                            $sex          ? ['label' => __('Biological sex'), 'value' => $sexLabel]                  : null,
+                            $weightKg     ? ['label' => __('Current weight'), 'value' => $weightKg . ' ' . __('kg')] : null,
+                            $heightCm     ? ['label' => __('Height'),         'value' => $heightCm . ' ' . __('cm')] : null,
+                            $activityName ? ['label' => __('Activity level'), 'value' => $activityName]              : null,
+                            $goal         ? ['label' => __('Your goal'),      'value' => $goalLabel]                 : null,
+                            $eatingHabit  ? ['label' => __('Eating habits'),  'value' => $eatingLabel]               : null,
+                        ]));
+                    @endphp
+                    @if(count($summaryRows))
+                        <div class="mb-6">
+                            <p class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-emerald-600 dark:text-emerald-400 mb-3">{{ __('Based on your answers') }}</p>
+                            <dl class="rounded-xl border border-zinc-100 dark:border-zinc-800 divide-y divide-zinc-100 dark:divide-zinc-800 overflow-hidden">
+                                @foreach($summaryRows as $row)
+                                    <div class="flex items-center justify-between gap-4 px-4 py-2.5 text-sm">
+                                        <dt class="text-zinc-500 dark:text-zinc-400 shrink-0">{{ $row['label'] }}</dt>
+                                        <dd class="min-w-0 truncate text-end font-medium text-zinc-900 dark:text-zinc-50">{{ $row['value'] }}</dd>
+                                    </div>
+                                @endforeach
+                            </dl>
+                        </div>
+                    @endif
+
                     {{-- Confirm --}}
                     <button wire:click="confirm"
                             class="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 mb-3">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        {{ __('Start tracking') }}
+                        {{ $previousTarget > 0 ? __('Save target') : __('Start tracking') }}
                     </button>
                     <div class="text-center">
                         <button wire:click="back" class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">

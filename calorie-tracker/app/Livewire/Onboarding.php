@@ -25,6 +25,7 @@ class Onboarding extends Component
     public int     $bmr          = 0;
     public int     $tdee         = 0;
     public int     $target       = 0;
+    public int     $previousTarget = 0; // the user's existing daily_goal, for the old → new delta on Result
     public int     $protein      = 0;
     public int     $carbs        = 0;
     public int     $fat          = 0;
@@ -54,6 +55,7 @@ class Onboarding extends Component
         $this->goalNotes   = $user->goal_notes     ?? '';
         $this->eatingHabit = $user->eating_habit   ?? '';
         $this->healthNotes = $user->health_notes   ?? '';
+        $this->previousTarget = (int) ($user->daily_goal ?? 0);
 
         // Returning user (recalculate flow): restore the saved result so jumping
         // to Result shows it instantly instead of recalculating
@@ -159,7 +161,7 @@ class Onboarding extends Component
         }
     }
 
-    public function adjust(int $delta): void
+    public function nudgeTarget(int $delta): void
     {
         $this->adjust = max(-500, min(500, $this->adjust + $delta));
     }
