@@ -539,10 +539,11 @@
                         </div>
 
                         @if($previousTarget > 0 && $previousTarget !== $final)
-                            <p class="mt-3 text-xs text-zinc-400 dark:text-zinc-500 text-center">
-                                {{ __('Was') }} <span class="font-mono">{{ number_format($previousTarget) }}</span>
-                                <span class="mx-1 text-zinc-300 dark:text-zinc-600">·</span>
-                                <span class="font-mono {{ $final >= $previousTarget ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400' }}">{{ $final >= $previousTarget ? '+' : '−' }}{{ number_format(abs($final - $previousTarget)) }}</span>
+                            <p class="mt-4 inline-flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                                <span>{{ __('Previous target') }}</span>
+                                <span class="font-mono">{{ number_format($previousTarget) }}</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-zinc-400 dark:text-zinc-500 rtl:-scale-x-100" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                                <span class="font-mono font-semibold text-zinc-900 dark:text-zinc-50">{{ number_format($final) }}</span>
                             </p>
                         @endif
                     </div>
@@ -617,16 +618,18 @@
                         </div>
                     @endif
 
-                    {{-- Confirm --}}
-                    <button wire:click="confirm"
-                            class="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 mb-3">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        {{ $previousTarget > 0 ? __('Save target') : __('Start tracking') }}
-                    </button>
-                    <div class="text-center">
-                        <button wire:click="back" class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
-                            ← {{ __('Back') }}
+                    {{-- Confirm — sticky so the save action stays visible while reviewing --}}
+                    <div class="sticky bottom-0 -mx-6 px-6 pb-4 pt-8 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-zinc-950 dark:via-zinc-950/95">
+                        <button wire:click="confirm"
+                                class="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/25 mb-2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            {{ $previousTarget > 0 ? __('Save target') : __('Start tracking') }}
                         </button>
+                        <div class="text-center">
+                            <button wire:click="back" class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
+                                ← {{ __('Back') }}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
