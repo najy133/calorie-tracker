@@ -7,13 +7,46 @@
     </div>
 
     {{-- Header --}}
-    <header class="relative z-10 flex items-center justify-between px-6 md:px-8 py-5">
-        <a href="{{ route('dashboard') }}" class="text-sm hover:opacity-80 transition"><x-wordmark /></a>
-        @if($step !== 'done')
-            <button wire:click="chooseManual" class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
-                {{ $step === 'welcome' ? __('Skip for now') : __('Exit setup') }}
+    <header x-data="{
+                dark: document.documentElement.classList.contains('dark'),
+                toggle() {
+                    this.dark = !this.dark;
+                    document.documentElement.classList.toggle('dark', this.dark);
+                    localStorage.setItem('theme', this.dark ? 'dark' : 'light');
+                }
+            }"
+            class="relative z-10 flex items-center justify-between px-6 md:px-8 py-5">
+        <a href="{{ route('dashboard') }}" class="text-2xl hover:opacity-80 transition"><x-wordmark /></a>
+
+        <div class="flex items-center gap-2">
+            {{-- Language toggle --}}
+            <form method="POST" action="{{ route('locale.switch') }}">
+                @csrf
+                <input type="hidden" name="locale" value="{{ app()->getLocale() === 'ar' ? 'en' : 'ar' }}">
+                <button type="submit"
+                        class="px-2.5 py-1 rounded-md text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition tracking-wide">
+                    {{ app()->getLocale() === 'ar' ? 'EN' : 'عربي' }}
+                </button>
+            </form>
+
+            {{-- Dark mode toggle --}}
+            <button type="button" @click="toggle()"
+                    class="p-1.5 rounded-lg text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                    :title="dark ? '{{ __('Switch to light mode') }}' : '{{ __('Switch to dark mode') }}'">
+                <svg x-show="dark" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14A7 7 0 0012 5z"/>
+                </svg>
+                <svg x-show="!dark" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
             </button>
-        @endif
+
+            @if($step !== 'done')
+                <button wire:click="chooseManual" class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition ms-1">
+                    {{ $step === 'welcome' ? __('Skip for now') : __('Exit setup') }}
+                </button>
+            @endif
+        </div>
     </header>
 
     {{-- Step navigator + progress bar --}}

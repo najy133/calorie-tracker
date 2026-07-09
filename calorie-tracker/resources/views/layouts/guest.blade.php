@@ -31,7 +31,7 @@
                 <div class="absolute -bottom-32 -right-20 w-64 h-64 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none"></div>
 
                 <div class="relative">
-                    <a href="{{ route('landing') }}" class="text-lg hover:opacity-80 transition">
+                    <a href="{{ route('landing') }}" class="text-2xl hover:opacity-80 transition">
                         <x-wordmark :dark="true" />
                     </a>
                 </div>
@@ -81,7 +81,7 @@
 
                 <div class="w-full max-w-sm">
                     <div class="lg:hidden mb-8">
-                        <a href="{{ route('landing') }}" class="text-xl hover:opacity-80 transition">
+                        <a href="{{ route('landing') }}" class="text-2xl hover:opacity-80 transition">
                             <x-wordmark />
                         </a>
                     </div>
