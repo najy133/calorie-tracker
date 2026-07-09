@@ -12,7 +12,7 @@
 
             {{-- Brand (left) --}}
             <div class="flex items-center flex-1 min-w-0">
-                <a href="{{ auth()->check() ? route('dashboard') : route('landing') }}" class="text-base hover:opacity-80 transition">
+                <a href="{{ auth()->check() ? route('dashboard') : route('landing') }}" class="text-2xl hover:opacity-80 transition">
                     <x-wordmark />
                 </a>
             </div>
@@ -58,9 +58,11 @@
                         {{-- Account menu --}}
                         <div x-data="{ userMenu: false }" class="relative">
                             <button @click="userMenu = !userMenu"
-                                    class="w-8 h-8 rounded-full bg-emerald-600 text-white font-serif text-sm flex items-center justify-center hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition"
+                                    class="flex items-center gap-1 ps-0.5 pe-1.5 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition"
+                                    :class="userMenu ? 'bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-600' : ''"
                                     :aria-expanded="userMenu" aria-haspopup="true" aria-label="{{ __('Account menu') }}">
-                                {{ $navInitial }}
+                                <span class="w-8 h-8 rounded-full bg-emerald-600 text-white font-serif text-sm flex items-center justify-center">{{ $navInitial }}</span>
+                                <svg class="w-4 h-4 text-zinc-400 dark:text-zinc-500 transition-transform duration-200" :class="userMenu ? 'rotate-180' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                             </button>
 
                             <div x-show="userMenu" x-cloak @click.outside="userMenu = false" @keydown.escape.window="userMenu = false"
