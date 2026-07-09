@@ -138,15 +138,6 @@
         <div class="flex items-center justify-between gap-3 flex-wrap mb-5 pt-8">
             <p class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-emerald-600 dark:text-emerald-400">{{ __('History') }}</p>
             <div class="flex items-center gap-1.5 flex-wrap">
-                <input type="date" wire:model.live="jumpDate" max="{{ today()->toDateString() }}"
-                       class="text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-transparent px-2.5 py-1 text-zinc-600 dark:text-zinc-300 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 transition [color-scheme:light] dark:[color-scheme:dark]"
-                       aria-label="{{ __('Jump to date') }}" />
-                @if($isDayView)
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-600 text-white whitespace-nowrap">
-                        {{ \Carbon\Carbon::parse($selectedDate)->locale(app()->getLocale())->translatedFormat(app()->getLocale() === 'ar' ? 'l، j M' : 'l, M j') }}
-                        <button wire:click="setFilter('week')" class="hover:opacity-70" title="{{ __('Clear') }}">✕</button>
-                    </span>
-                @endif
                 <button wire:click="setFilter('week')"
                         class="px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap
                             {{ $historyFilter === 'week' && $weekOffset === 0
@@ -161,6 +152,18 @@
                                 : 'text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400' }}">
                     {{ __('All') }}
                 </button>
+
+                <span class="w-px h-4 bg-zinc-200 dark:bg-zinc-700 mx-1" aria-hidden="true"></span>
+
+                <input type="date" wire:model.live="jumpDate" max="{{ today()->toDateString() }}"
+                       class="text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-transparent px-2.5 py-1 text-zinc-600 dark:text-zinc-300 focus:outline-none focus:border-emerald-400 dark:focus:border-emerald-500 transition [color-scheme:light] dark:[color-scheme:dark]"
+                       aria-label="{{ __('Jump to date') }}" />
+                @if($isDayView)
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-600 text-white whitespace-nowrap">
+                        {{ \Carbon\Carbon::parse($selectedDate)->locale(app()->getLocale())->translatedFormat(app()->getLocale() === 'ar' ? 'l، j M' : 'l, M j') }}
+                        <button wire:click="setFilter('week')" class="hover:opacity-70" title="{{ __('Clear') }}">✕</button>
+                    </span>
+                @endif
             </div>
         </div>
 
