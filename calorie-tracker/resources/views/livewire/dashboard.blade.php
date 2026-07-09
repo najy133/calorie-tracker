@@ -61,7 +61,7 @@
     {{-- ── Row 1: Overview (weekly bar chart with week navigator) ── --}}
     <div class="mb-14">
         <div class="flex items-center justify-between gap-3 flex-wrap mb-6">
-            <p class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-emerald-600 dark:text-emerald-400">{{ __('Overview') }}</p>
+            <h2 class="font-serif text-2xl md:text-[1.75rem] text-zinc-900 dark:text-zinc-50 tracking-tight leading-tight">{{ __('Overview') }}</h2>
             <div class="flex items-center gap-2">
                 <button wire:click="prevWeek" title="{{ __('Previous week') }}"
                         class="w-7 h-7 inline-flex items-center justify-center rounded-md text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200 transition">
@@ -136,7 +136,7 @@
     {{-- ── Row 2: History ── --}}
     <div class="pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
         <div class="flex items-center justify-between gap-3 flex-wrap mb-5 pt-8">
-            <p class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-emerald-600 dark:text-emerald-400">{{ __('History') }}</p>
+            <h2 class="font-serif text-2xl md:text-[1.75rem] text-zinc-900 dark:text-zinc-50 tracking-tight leading-tight">{{ __('History') }}</h2>
             <div class="flex items-center gap-1.5 flex-wrap">
                 <button wire:click="setFilter('week')"
                         class="px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap
