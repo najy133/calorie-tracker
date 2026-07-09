@@ -2,6 +2,18 @@
 
 [x-cloak] { display: none !important; }
 
+/* Buttons default to the arrow cursor in the browser / Tailwind v4 reset,
+   while links get a pointer — make every real, enabled control show the
+   pointer so hover affordance is consistent across the app. */
+@layer base {
+    button:not(:disabled),
+    [role="button"]:not(:disabled),
+    label[for],
+    summary {
+        cursor: pointer;
+    }
+}
+
 @source '../views/**/*.blade.php';
 @source '../js/**/*.js';
 @source '../../app/View/Components/**/*.php';
