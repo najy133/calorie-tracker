@@ -19,13 +19,13 @@
 
             {{-- Primary nav (centered, desktop, auth only) --}}
             @auth
-                <div class="hidden sm:flex items-center gap-2">
+                <div class="hidden sm:flex items-stretch gap-7 h-14">
                     <a href="{{ route('dashboard') }}"
-                       class="px-3 py-2 rounded-lg text-sm {{ request()->routeIs('dashboard') ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100' }} transition">
+                       class="inline-flex items-center h-14 border-b-2 text-sm transition {{ request()->routeIs('dashboard') ? 'border-emerald-600 dark:border-emerald-400 text-emerald-600 dark:text-emerald-400 font-medium' : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100' }}">
                         {{ __('Dashboard') }}
                     </a>
                     <a href="{{ route('home') }}"
-                       class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition">
+                       class="inline-flex items-center h-14 border-b-2 text-sm transition {{ request()->routeIs('home') ? 'border-emerald-600 dark:border-emerald-400 text-emerald-600 dark:text-emerald-400 font-medium' : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100' }}">
                         {{ __('Log Meal') }}
                     </a>
                 </div>
@@ -176,7 +176,7 @@
                 </a>
 
                 <a href="{{ route('home') }}"
-                   class="block text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition">
+                   class="block text-sm {{ request()->routeIs('home') ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100' }} transition">
                     {{ __('Log Meal') }}
                 </a>
 
