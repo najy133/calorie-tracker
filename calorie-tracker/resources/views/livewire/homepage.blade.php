@@ -1,336 +1,246 @@
-<div class="mx-auto max-w-5xl px-6 md:px-10 py-8">
+<div class="mx-auto max-w-2xl px-6 md:px-10 py-10 md:py-14">
 
-    {{-- Page header --}}
-    <div class="flex items-center justify-between mb-8 flex-wrap gap-3">
-        <div>
-            @php
-                $hour = now()->hour;
-                $greetingKey = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
-            @endphp
-            <h1 class="font-serif text-3xl text-zinc-900 dark:text-zinc-50">
-                {{ __($greetingKey) }}{{ auth()->check() ? ', ' . auth()->user()->name : '' }}
+    {{-- ── Header ── --}}
+    @php
+        $hour = now()->hour;
+        $greetingKey = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
+    @endphp
+    <div class="flex items-start justify-between gap-4 mb-8">
+        <div class="min-w-0">
+            <h1 class="font-serif text-3xl md:text-4xl text-zinc-900 dark:text-zinc-50 leading-tight tracking-tight">
+                {{ __($greetingKey) }}{{ auth()->check() ? ', ' . explode(' ', auth()->user()->name)[0] : '' }}
             </h1>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{{ now()->locale(app()->getLocale())->translatedFormat(app()->getLocale() === 'ar' ? 'l، j F' : 'l, F j') }}</p>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{{ now()->locale(app()->getLocale())->translatedFormat(app()->getLocale() === 'ar' ? 'l، j F' : 'l, F j') }}</p>
         </div>
-
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-3 shrink-0">
             @auth
                 @if($streak > 0)
-                    <span class="px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-sm font-medium">
-                        🔥 {{ __(':count-day streak', ['count' => $streak]) }}
-                    </span>
+                    <span class="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 dark:text-amber-400 whitespace-nowrap"><x-flame />{{ __(':count-day streak', ['count' => $streak]) }}</span>
                 @endif
-                <span class="px-3 py-1 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                    {{ __('Goal: :value kcal', ['value' => number_format($dailyGoal)]) }}
-                </span>
             @endauth
-
             @guest
                 <a href="{{ route('register') }}"
-                   class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 transition">
+                   class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-600/20 whitespace-nowrap">
                     {{ __('Sign up to save') }}
                 </a>
             @endguest
         </div>
     </div>
 
-    {{-- Main grid --}}
-    <div class="grid gap-6 lg:grid-cols-2">
-
-        {{-- Today's Calories Card --}}
-        <section class="relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-            <div class="relative z-10">
-                <div class="flex items-center justify-between mb-5">
-                    <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-50">{{ __("Today's Calories") }}</h2>
-                    <span class="px-3 py-1 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                        {{ __('Goal: :value kcal', ['value' => number_format($dailyGoal)]) }}
-                    </span>
-                </div>
-
-                {{-- Circular progress ring --}}
-                @php
-                    $pct          = $dailyGoal > 0 ? min(100, round(($todayCalories / $dailyGoal) * 100)) : 0;
-                    $r            = 50;
-                    $circumf      = 2 * M_PI * $r;
-                    $dashoffset   = $circumf * (1 - $pct / 100);
-                    $remaining    = $dailyGoal - $todayCalories;
-                    $ringColor    = $pct >= 100 ? '#f43f5e' : ($pct >= 80 ? '#f59e0b' : '#10b981');
-                    $trackColor   = 'text-zinc-100 dark:text-zinc-800';
-                @endphp
-
-                <div class="flex flex-col items-center my-2">
-                    <div class="relative w-44 h-44">
-                        <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                            <circle cx="60" cy="60" r="{{ $r }}" fill="none"
-                                    stroke="currentColor"
-                                    class="{{ $trackColor }}"
-                                    stroke-width="10" />
-                            <circle cx="60" cy="60" r="{{ $r }}" fill="none"
-                                    stroke="{{ $ringColor }}"
-                                    stroke-width="10"
-                                    stroke-dasharray="{{ number_format($circumf, 2) }}"
-                                    stroke-dashoffset="{{ number_format($dashoffset, 2) }}"
-                                    stroke-linecap="round"
-                                    class="transition-all duration-700" />
-                        </svg>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center">
-                            <span class="font-mono text-3xl font-bold text-zinc-900 dark:text-zinc-50 leading-none">
-                                {{ number_format($todayCalories) }}
-                            </span>
-                            <span class="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{{ __('kcal eaten') }}</span>
-                        </div>
-                    </div>
-
-                    @auth
-                        @php $afterSaving = $remaining - $calories; @endphp
-                        @if($calories > 0)
-                            <p class="text-sm font-medium mt-3 {{ $afterSaving < 0 ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400' }}">
-                                @if($afterSaving < 0)
-                                    {{ __(':value kcal over goal after saving', ['value' => number_format(abs($afterSaving))]) }}
-                                @else
-                                    {{ __(':value kcal remaining after saving', ['value' => number_format($afterSaving)]) }}
-                                @endif
-                            </p>
-                        @else
-                            <p class="text-sm font-medium mt-3 {{ $remaining < 0 ? 'text-rose-500 dark:text-rose-400' : ($remaining === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-500 dark:text-zinc-400') }}">
-                                @if($remaining > 0)
-                                    {{ __(':value kcal remaining', ['value' => number_format($remaining)]) }}
-                                @elseif($remaining === 0)
-                                    {{ __('Daily goal reached!') }}
-                                @else
-                                    {{ __(':value kcal over goal', ['value' => number_format(abs($remaining))]) }}
-                                @endif
-                            </p>
-                        @endif
+    {{-- ── Today progress ── --}}
+    @auth
+        @php
+            $pct        = $dailyGoal > 0 ? min(100, round(($todayCalories / $dailyGoal) * 100)) : 0;
+            $remaining  = $dailyGoal - $todayCalories;
+            $barColor   = $pct >= 100 ? 'bg-rose-500' : ($pct >= 80 ? 'bg-amber-400 dark:bg-amber-500' : 'bg-emerald-500');
+            $afterSaving = $remaining - $calories;
+        @endphp
+        <div class="pb-8 mb-10 border-b border-zinc-200/70 dark:border-zinc-800/80">
+            <div class="flex items-baseline justify-between mb-2">
+                <span class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-emerald-600 dark:text-emerald-400">{{ __('Eaten today') }}</span>
+                <span class="text-sm text-zinc-500 dark:text-zinc-400">
+                    <span class="font-mono font-medium text-zinc-900 dark:text-zinc-100">{{ number_format($todayCalories) }}</span> / {{ number_format($dailyGoal) }}
+                    <span class="mx-1 text-zinc-300 dark:text-zinc-600">·</span>
+                    @if($remaining > 0)
+                        <span class="text-emerald-600 dark:text-emerald-400">{{ __(':value left', ['value' => number_format($remaining)]) }}</span>
+                    @elseif($remaining === 0)
+                        <span class="text-emerald-600 dark:text-emerald-400">{{ __('goal reached') }}</span>
                     @else
-                        <p class="text-sm text-zinc-400 dark:text-zinc-500 mt-3">
-                            {{ __('Estimate a meal below — sign up to save') }}
-                        </p>
-                    @endauth
-                </div>
-
+                        <span class="text-rose-500 dark:text-rose-400">{{ __(':value over', ['value' => number_format(abs($remaining))]) }}</span>
+                    @endif
+                </span>
             </div>
-        </section>
+            <div class="h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                <div class="h-full {{ $barColor }} rounded-full transition-all duration-700" style="width: {{ $pct }}%"></div>
+            </div>
+            @if($calories > 0)
+                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                    {{ __('Saving this puts you at') }}
+                    <span class="font-mono font-medium text-zinc-700 dark:text-zinc-300">{{ number_format($todayCalories + $calories) }}</span>
+                    @if($afterSaving < 0)
+                        <span class="text-rose-500 dark:text-rose-400">({{ __(':value over', ['value' => number_format(abs($afterSaving))]) }})</span>
+                    @else
+                        <span class="text-emerald-600 dark:text-emerald-400">({{ __(':value left', ['value' => number_format($afterSaving)]) }})</span>
+                    @endif
+                </p>
+            @endif
+        </div>
+    @endauth
 
-        {{-- Log Meal Card --}}
-        <section class="relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-            <div class="relative z-10">
-                <div class="flex items-center justify-between mb-5">
-                    <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-50">{{ __('Log Meal') }}</h2>
-                    <button
-                        wire:click="estimate"
-                        wire:loading.attr="disabled"
-                        wire:loading.class="opacity-60 cursor-not-allowed"
-                        wire:target="estimate"
-                        class="inline-flex items-center gap-2 rounded-full bg-indigo-600 dark:bg-indigo-500 text-white px-4 py-2 text-sm font-medium shadow hover:bg-indigo-700 dark:hover:bg-indigo-600 transition"
-                    >
-                        <span wire:loading wire:target="estimate" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        <span wire:loading.remove wire:target="estimate">⚡</span>
-                        {{ __('Estimate') }}
+    {{-- ── Log a meal ── --}}
+    <div class="mb-12">
+        <div class="flex items-center justify-between gap-3 mb-3">
+            <h2 class="font-serif text-2xl md:text-[1.75rem] text-zinc-900 dark:text-zinc-50 tracking-tight leading-tight">{{ __('Log a meal') }}</h2>
+            <button wire:click="estimate"
+                    wire:loading.attr="disabled"
+                    wire:loading.class="opacity-60 cursor-not-allowed"
+                    wire:target="estimate"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-semibold shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition">
+                <span wire:loading wire:target="estimate" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <svg wire:loading.remove wire:target="estimate" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg>
+                {{ __('Estimate') }}
+            </button>
+        </div>
+
+        <textarea wire:model="food" rows="3"
+                  wire:keydown.meta.enter="estimate"
+                  wire:keydown.ctrl.enter="estimate"
+                  placeholder="{{ __('Describe what you ate — e.g. chicken shawarma bowl, large') }}"
+                  class="w-full resize-none rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 text-sm text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-400/30 focus:outline-none transition"></textarea>
+        @error('food')
+            <p class="mt-1.5 text-xs text-rose-500 dark:text-rose-400">{{ $message }}</p>
+        @enderror
+
+        {{-- Estimate result --}}
+        @if($food && $calories)
+            <div wire:transition class="mt-4 rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/30 p-5">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                        <p class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-emerald-600 dark:text-emerald-400 mb-1">{{ __('Estimated') }}</p>
+                        <p class="font-mono text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-50 leading-none">
+                            {{ number_format($calories) }}<span class="text-sm font-normal text-zinc-500 dark:text-zinc-400 ms-1.5">{{ __('kcal') }}</span>
+                        </p>
+                        @if($protein || $carbs || $fat)
+                            <x-macros :protein="$protein" :carbs="$carbs" :fat="$fat" class="text-xs mt-3" />
+                        @endif
+                    </div>
+                    <button wire:click="save"
+                            wire:loading.attr="disabled"
+                            wire:loading.class="opacity-60 cursor-not-allowed"
+                            wire:target="save"
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-semibold shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition whitespace-nowrap">
+                        <span wire:loading wire:target="save" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <svg wire:loading.remove wire:target="save" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        {{ __('Save') }}
                     </button>
                 </div>
 
-                <textarea
-                    wire:model="food"
-                    rows="4"
-                    placeholder="{{ __('Describe what you ate...') }}"
-                    class="w-full min-h-[140px] resize-none rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-4 text-sm text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400/40 focus:outline-none focus:bg-white dark:focus:bg-zinc-800 transition"
-                ></textarea>
-                @error('food')
-                    <p class="mt-1 text-xs text-rose-500 dark:text-rose-400">{{ $message }}</p>
-                @enderror
-
-                @if($food && $calories)
-                    <div wire:transition class="mt-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 overflow-hidden">
-
-                        {{-- Header: label + kcal + save --}}
-                        <div class="flex items-center justify-between px-4 pt-4 pb-3">
-                            <div>
-                                <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-widest rtl:tracking-normal">{{ __('Estimated') }}</p>
-                                <p class="font-mono text-3xl font-bold text-zinc-900 dark:text-zinc-50 leading-none mt-1">
-                                    {{ number_format($calories) }}<span class="text-sm font-normal text-zinc-400 dark:text-zinc-500 ms-1">kcal</span>
-                                </p>
-                            </div>
-                            <button
-                                wire:click="save"
-                                wire:loading.attr="disabled"
-                                wire:loading.class="opacity-60 cursor-not-allowed"
-                                wire:target="save"
-                                class="inline-flex items-center gap-2 rounded-full bg-emerald-600 text-white px-4 py-2 text-sm font-medium shadow-sm hover:bg-emerald-700 transition"
-                            >
-                                <span wire:loading wire:target="save" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                <span wire:loading.remove wire:target="save">✔</span>
-                                {{ __('Save') }}
-                            </button>
-                        </div>
-
-                        {{-- Per-ingredient breakdown cards --}}
-                        @if(!empty($breakdown))
-                            <div class="flex gap-2 px-4 pb-3 overflow-x-auto">
-                                @foreach($breakdown as $item)
-                                    @php
-                                        $mx = max($item['p'], $item['c'], $item['f']);
-                                        if ($item['p'] === $mx && $mx > 0) {
-                                            $bdColor = '#6366f1'; $macroLabel = __('P').' '.$item['p'].'g'; $macroClass = 'text-indigo-500 dark:text-indigo-400';
-                                        } elseif ($item['c'] === $mx && $mx > 0) {
-                                            $bdColor = '#f59e0b'; $macroLabel = __('C').' '.$item['c'].'g'; $macroClass = 'text-amber-500 dark:text-amber-400';
-                                        } else {
-                                            $bdColor = '#f43f5e'; $macroLabel = __('F').' '.$item['f'].'g'; $macroClass = 'text-rose-500 dark:text-rose-400';
-                                        }
-                                    @endphp
-                                    <div class="flex-1 min-w-[90px] rounded-lg bg-white dark:bg-zinc-800/70 border border-zinc-100 dark:border-zinc-700/50 px-3 py-2.5"
-                                         style="border-top: 2px solid {{ $bdColor }}">
-                                        <p class="text-xs text-zinc-500 dark:text-zinc-400 truncate mb-1">{{ $item['text'] }}</p>
-                                        <p class="font-mono text-lg font-bold text-zinc-900 dark:text-zinc-50 leading-none">
-                                            {{ $item['kcal'] }}<span class="text-[10px] font-normal text-zinc-400 ms-0.5">kcal</span>
-                                        </p>
-                                        <p class="text-xs font-semibold {{ $macroClass }} mt-1">{{ $macroLabel }}</p>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-
-                        {{-- Macro bars --}}
-                        @if($protein || $carbs || $fat)
-                            @php $macroTotal = $protein + $carbs + $fat; @endphp
-                            <div class="px-4 pb-3 space-y-1.5">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 w-4">{{ __('P') }}</span>
-                                    <div class="flex-1 h-1.5 bg-emerald-100 dark:bg-zinc-700 rounded-full overflow-hidden">
-                                        <div class="h-full bg-indigo-500 rounded-full transition-all duration-500"
-                                             style="width: {{ $macroTotal > 0 ? round($protein / $macroTotal * 100) : 0 }}%"></div>
-                                    </div>
-                                    <span class="text-xs text-zinc-500 dark:text-zinc-400 w-7 text-end">{{ $protein }}g</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs font-semibold text-amber-600 dark:text-amber-400 w-4">{{ __('C') }}</span>
-                                    <div class="flex-1 h-1.5 bg-emerald-100 dark:bg-zinc-700 rounded-full overflow-hidden">
-                                        <div class="h-full bg-amber-400 rounded-full transition-all duration-500"
-                                             style="width: {{ $macroTotal > 0 ? round($carbs / $macroTotal * 100) : 0 }}%"></div>
-                                    </div>
-                                    <span class="text-xs text-zinc-500 dark:text-zinc-400 w-7 text-end">{{ $carbs }}g</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs font-semibold text-rose-500 dark:text-rose-400 w-4">{{ __('F') }}</span>
-                                    <div class="flex-1 h-1.5 bg-emerald-100 dark:bg-zinc-700 rounded-full overflow-hidden">
-                                        <div class="h-full bg-rose-400 rounded-full transition-all duration-500"
-                                             style="width: {{ $macroTotal > 0 ? round($fat / $macroTotal * 100) : 0 }}%"></div>
-                                    </div>
-                                    <span class="text-xs text-zinc-500 dark:text-zinc-400 w-7 text-end">{{ $fat }}g</span>
-                                </div>
-                            </div>
-                        @endif
-
-                        {{-- Explanation --}}
-                        @if($explanation)
-                            <div class="mx-4 mb-4 flex items-start gap-2 p-3 rounded-lg bg-white/60 dark:bg-zinc-800/40 border border-emerald-100 dark:border-emerald-900/40">
-                                <span class="text-emerald-500 shrink-0 text-sm mt-0.5">✨</span>
-                                <p class="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed">{{ $explanation }}</p>
-                            </div>
-                        @endif
-
+                @if(!empty($breakdown))
+                    <div class="mt-4 pt-3 border-t border-emerald-200/70 dark:border-emerald-800/40 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        @foreach($breakdown as $item)
+                            <span><span class="font-mono text-zinc-700 dark:text-zinc-300">{{ number_format($item['kcal']) }}</span> {{ $item['text'] }}</span>
+                        @endforeach
                     </div>
                 @endif
 
-                @if(!$food)
-                    <div class="mt-6 text-center text-zinc-400 dark:text-zinc-600">
-                        <div class="text-3xl mb-2">🥗 🍳 🥤</div>
-                        <p class="text-sm">{{ __('Start typing to log your meal') }}</p>
+                @if($explanation)
+                    <div class="mt-3 flex items-start gap-2 text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#059669" class="mt-0.5 shrink-0" aria-hidden="true"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg>
+                        <span>{{ $explanation }}</span>
                     </div>
                 @endif
+
+                <p class="mt-4 pt-3 border-t border-emerald-200/70 dark:border-emerald-800/40 text-xs text-zinc-500 dark:text-zinc-400">
+                    {{ __("Doesn't look right? Edit the description above and estimate again.") }}
+                </p>
             </div>
-        </section>
+        @endif
 
+        @if(!$food)
+            <p class="mt-3 text-xs text-zinc-400 dark:text-zinc-500">{{ __('Type what you ate in plain English and let AI do the counting.') }}</p>
+        @endif
     </div>
 
-    {{-- Meal History --}}
-    <section class="mt-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-50">{{ __("Today's Meals") }}</h2>
-            @if($todayEntries->isNotEmpty())
-                <span class="text-xs text-zinc-400 dark:text-zinc-500">
-                    {{ $todayEntries->count() }} {{ $todayEntries->count() === 1 ? __('entry') : __('entries') }}
-                </span>
-            @endif
+    {{-- ── Today's meals ── --}}
+    <div>
+        <div class="flex items-baseline justify-between mb-5">
+            <h2 class="font-serif text-2xl md:text-[1.75rem] text-zinc-900 dark:text-zinc-50 tracking-tight leading-tight">{{ __("Today's meals") }}</h2>
+            @auth
+                @if($todayEntries->isNotEmpty())
+                    <span class="text-xs text-zinc-400 dark:text-zinc-500">{{ $todayEntries->count() }} {{ $todayEntries->count() === 1 ? __('entry') : __('entries') }}</span>
+                @endif
+            @endauth
         </div>
 
         @guest
-            <div class="text-center py-10 text-zinc-400 dark:text-zinc-500">
-                <div class="text-4xl mb-3">🔒</div>
-                <p class="text-sm">{{ __('Your meal history will appear here.') }}</p>
-                <a href="{{ route('register') }}"
-                   class="inline-block mt-3 text-sm text-emerald-600 dark:text-emerald-400 font-medium hover:underline">
-                    {{ __('Create a free account to start tracking') }}
+            <div class="py-14 text-center">
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Your meal history will appear here.') }}</p>
+                <a href="{{ route('register') }}" class="inline-block mt-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+                    {{ __('Create a free account to start tracking') }} →
                 </a>
             </div>
         @endguest
 
         @auth
-            <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
-                @forelse($todayEntries as $entry)
-                    <li wire:key="{{ $entry->id }}" class="py-3">
-                        @if($editingId === $entry->id)
-                            <div class="space-y-2">
-                                <input wire:model="editFood" type="text"
-                                       class="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 px-3 py-1.5 text-sm focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400/40 focus:outline-none transition"
-                                       placeholder="{{ __('Food description') }}" />
-                                @error('editFood')
-                                    <p class="text-xs text-rose-500 dark:text-rose-400">{{ $message }}</p>
-                                @enderror
-                                <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('Macros will be re-estimated automatically.') }}</p>
-                                <div class="flex gap-2">
-                                    <button wire:click="saveEdit"
-                                            wire:loading.attr="disabled"
-                                            wire:loading.class="opacity-60 cursor-not-allowed"
-                                            wire:target="saveEdit"
-                                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition">
-                                        <span wire:loading wire:target="saveEdit" class="inline-block w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                        {{ __('Save') }}
-                                    </button>
-                                    <button wire:click="cancelEdit"
-                                            class="px-3 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">
-                                        {{ __('Cancel') }}
-                                    </button>
+            @forelse($todayEntries as $entry)
+                <div wire:key="{{ $entry->id }}" class="border-t border-zinc-100 dark:border-zinc-800/70 py-3 {{ $lastSavedId === $entry->id ? 'row-flash' : '' }}">
+                    @if($editingId === $entry->id)
+                        <div class="space-y-2">
+                            <input wire:model="editFood" type="text"
+                                   class="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 px-3 py-1.5 text-sm focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-400/40 focus:outline-none transition"
+                                   placeholder="{{ __('Food description') }}" />
+                            @error('editFood')
+                                <p class="text-xs text-rose-500 dark:text-rose-400">{{ $message }}</p>
+                            @enderror
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ __('Macros will be re-estimated automatically.') }}</p>
+                            <div class="flex gap-2">
+                                <button wire:click="saveEdit"
+                                        wire:loading.attr="disabled"
+                                        wire:loading.class="opacity-60 cursor-not-allowed"
+                                        wire:target="saveEdit"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition">
+                                    <span wire:loading wire:target="saveEdit" class="inline-block w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                    {{ __('Save') }}
+                                </button>
+                                <button wire:click="cancelEdit"
+                                        class="px-3 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition">
+                                    {{ __('Cancel') }}
+                                </button>
+                            </div>
+                        </div>
+                    @else
+                        <div class="flex items-center justify-between group gap-4">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">{{ $entry->food }}</p>
+                                <div class="flex items-center gap-2.5 mt-1">
+                                    <span class="text-xs text-zinc-400 dark:text-zinc-500 whitespace-nowrap">{{ $entry->created_at->format('g:i') }} {{ __($entry->created_at->format('A')) }}</span>
+                                    @if($entry->protein || $entry->carbs || $entry->fat)
+                                        <x-macros :protein="$entry->protein" :carbs="$entry->carbs" :fat="$entry->fat" class="text-xs" />
+                                    @endif
                                 </div>
                             </div>
-                        @else
-                            <div class="flex items-center justify-between group">
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">{{ $entry->food }}</p>
-                                    <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
-                                        {{ $entry->created_at->format('g:i') }} {{ __($entry->created_at->format('A')) }}
-                                        @if($entry->protein || $entry->carbs || $entry->fat)
-                                            &nbsp;·&nbsp;
-                                            <span class="text-indigo-500 dark:text-indigo-400">{{ __('P') }}{{ $entry->protein }}g</span>
-                                            &nbsp;<span class="text-amber-500 dark:text-amber-400">{{ __('C') }}{{ $entry->carbs }}g</span>
-                                            &nbsp;<span class="text-rose-400 dark:text-rose-400">{{ __('F') }}{{ $entry->fat }}g</span>
-                                        @endif
-                                    </p>
-                                </div>
-                                <div class="flex items-center gap-3 ms-4 shrink-0">
-                                    <span class="font-mono text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                                        {{ number_format($entry->calories) }} kcal
-                                    </span>
-                                    <button wire:click="startEdit({{ $entry->id }})"
-                                            class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-indigo-500 dark:hover:text-indigo-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                                            title="Edit entry">✎</button>
-                                    <button wire:click="delete({{ $entry->id }})"
-                                            wire:confirm="{{ __('Remove this entry?') }}"
-                                            class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-rose-500 dark:hover:text-rose-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                                            title="Remove entry">✕</button>
-                                </div>
+                            <div class="flex items-center gap-3 shrink-0">
+                                <span class="font-mono text-sm font-semibold text-zinc-700 dark:text-zinc-300 whitespace-nowrap">
+                                    {{ number_format($entry->calories) }} {{ __('kcal') }}
+                                </span>
+                                <button wire:click="startEdit({{ $entry->id }})"
+                                        class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                                        title="{{ __('Edit entry') }}">✎</button>
+                                <button wire:click="confirmDelete({{ $entry->id }})"
+                                        class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-rose-500 dark:hover:text-rose-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                                        title="{{ __('Remove entry') }}">✕</button>
                             </div>
-                        @endif
-                    </li>
-                @empty
-                    <li wire:key="empty-state" class="text-center py-10 text-zinc-400 dark:text-zinc-500">
-                        <div class="text-4xl mb-3">🍽️</div>
-                        <p class="text-sm">{{ __('No meals logged yet today.') }}</p>
-                        <p class="text-xs mt-1">{{ __('Log your first meal above to get started.') }}</p>
-                    </li>
-                @endforelse
-            </ul>
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div wire:key="empty-state" class="py-14 text-center">
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No meals logged yet today.') }}</p>
+                    <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{{ __('Log your first meal above to get started.') }}</p>
+                </div>
+            @endforelse
+
+            {{-- Confirm-delete modal — visibility is pure Livewire state so DOM
+                 morphs can never desync it (Alpine x-show bindings don't survive
+                 morphs inside a Livewire tree) --}}
+            @if($confirmingDeleteId !== null)
+                <div class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0 flex items-start justify-center"
+                     x-data x-on:keydown.escape.window="$wire.set('confirmingDeleteId', null)">
+                    <div class="fixed inset-0 bg-zinc-900/50" wire:click="$set('confirmingDeleteId', null)"></div>
+                    <div class="step-in relative z-10 mt-24 w-full sm:max-w-md rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl p-6">
+                        <h2 class="font-serif text-2xl text-zinc-900 dark:text-zinc-50">{{ __('Remove this entry?') }}</h2>
+                        <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                            <span class="font-medium text-zinc-900 dark:text-zinc-100">“{{ $confirmingDeleteFood }}”</span>
+                            {{ __('and its calories will be removed from your log. There is no undo.') }}
+                        </p>
+                        <div class="mt-6 flex justify-end gap-3">
+                            <x-secondary-button wire:click="$set('confirmingDeleteId', null)">{{ __('Cancel') }}</x-secondary-button>
+                            <x-danger-button wire:click="deleteConfirmed" wire:loading.attr="disabled" wire:target="deleteConfirmed">{{ __('Remove entry') }}</x-danger-button>
+                        </div>
+                    </div>
+                </div>
+            @endif
         @endauth
-    </section>
+    </div>
 
 </div>

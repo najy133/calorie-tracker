@@ -63,16 +63,18 @@
                     {{ __('Type what you ate in plain English. No barcode scanning, no database — just your calories and macros back in seconds.') }}
                 </p>
 
-                <div class="flex items-center gap-6">
-                    <a href="{{ route('register') }}"
-                       class="inline-flex items-center px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors duration-150 shadow-sm shadow-emerald-600/20">
-                        {{ __('Get started free') }}
-                    </a>
+                <div class="flex items-center gap-3 flex-wrap">
                     <a href="{{ route('home') }}"
-                       class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors underline underline-offset-4 decoration-zinc-200 dark:decoration-zinc-700">
+                       class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors duration-150 shadow-sm shadow-emerald-600/20">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg>
                         {{ __('Try it first') }}
                     </a>
+                    <a href="{{ route('register') }}"
+                       class="inline-flex items-center px-5 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-sm font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 transition">
+                        {{ __('Get started free') }}
+                    </a>
                 </div>
+                <p class="mt-4 text-xs text-zinc-400 dark:text-zinc-500">{{ __('No account needed to try it — sign up later to save your meals.') }}</p>
             </div>
 
             {{-- Right: app mockup --}}
@@ -114,11 +116,9 @@
                         <div class="entry-1 flex items-center justify-between py-2.5 border-b border-zinc-800/60">
                             <div class="min-w-0 me-3">
                                 <p class="text-zinc-100 text-xs font-medium truncate">{{ __('Grilled chicken & rice') }}</p>
-                                <p class="text-zinc-600 text-xs mt-0.5">
-                                    12:34 {{ __('PM') }} ·
-                                    <span class="text-indigo-400">{{ __('P') }}52g</span>
-                                    <span class="text-amber-400 ms-1">{{ __('C') }}68g</span>
-                                    <span class="text-rose-400 ms-1">{{ __('F') }}12g</span>
+                                <p class="text-zinc-600 text-xs mt-0.5 flex items-center gap-1.5">
+                                    <span>12:34 {{ __('PM') }} ·</span>
+                                    <x-macros :protein="52" :carbs="68" :fat="12" class="text-xs" />
                                 </p>
                             </div>
                             <span class="font-mono text-xs text-zinc-300 shrink-0">580 kcal</span>
@@ -126,11 +126,9 @@
                         <div class="entry-2 flex items-center justify-between py-2.5 border-b border-zinc-800/60">
                             <div class="min-w-0 me-3">
                                 <p class="text-zinc-100 text-xs font-medium truncate">{{ __('2 eggs, toast with butter') }}</p>
-                                <p class="text-zinc-600 text-xs mt-0.5">
-                                    8:15 {{ __('AM') }} ·
-                                    <span class="text-indigo-400">{{ __('P') }}18g</span>
-                                    <span class="text-amber-400 ms-1">{{ __('C') }}28g</span>
-                                    <span class="text-rose-400 ms-1">{{ __('F') }}22g</span>
+                                <p class="text-zinc-600 text-xs mt-0.5 flex items-center gap-1.5">
+                                    <span>8:15 {{ __('AM') }} ·</span>
+                                    <x-macros :protein="18" :carbs="28" :fat="22" class="text-xs" />
                                 </p>
                             </div>
                             <span class="font-mono text-xs text-zinc-300 shrink-0">380 kcal</span>
@@ -138,11 +136,9 @@
                         <div class="entry-3 flex items-center justify-between py-2.5">
                             <div class="min-w-0 me-3">
                                 <p class="text-zinc-100 text-xs font-medium truncate">{{ __('Greek yogurt, granola') }}</p>
-                                <p class="text-zinc-600 text-xs mt-0.5">
-                                    7:30 {{ __('AM') }} ·
-                                    <span class="text-indigo-400">{{ __('P') }}15g</span>
-                                    <span class="text-amber-400 ms-1">{{ __('C') }}38g</span>
-                                    <span class="text-rose-400 ms-1">{{ __('F') }}6g</span>
+                                <p class="text-zinc-600 text-xs mt-0.5 flex items-center gap-1.5">
+                                    <span>7:30 {{ __('AM') }} ·</span>
+                                    <x-macros :protein="15" :carbs="38" :fat="6" class="text-xs" />
                                 </p>
                             </div>
                             <span class="font-mono text-xs text-zinc-300 shrink-0">324 kcal</span>
@@ -256,6 +252,10 @@
                     {{ __('Create free account →') }}
                 </a>
                 <p class="mt-3 text-xs text-zinc-400 dark:text-zinc-600">
+                    <a href="{{ route('home') }}" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition font-medium">{{ __('Try it first') }}</a>
+                    {{ __('— no account needed.') }}
+                </p>
+                <p class="mt-1.5 text-xs text-zinc-400 dark:text-zinc-600">
                     {{ __('Already have one?') }}
                     <a href="{{ route('login') }}" class="hover:text-zinc-600 dark:hover:text-zinc-400 transition underline underline-offset-2">{{ __('Log in') }}</a>
                 </p>

@@ -167,9 +167,9 @@ $meals = $isAr ? [
                             <span x-text="ph.kcal"></span><small class="font-sans text-[11px] font-medium text-zinc-500 ms-1">kcal</small>
                         </div>
                         <div class="flex gap-2.5 font-mono text-[11px] tabular-nums">
-                            <template x-if="ph.p > 0"><span class="text-indigo-300" x-text="_P+ph.p+'g'"></span></template>
-                            <template x-if="ph.c > 0"><span class="text-amber-300" x-text="_C+ph.c+'g'"></span></template>
-                            <template x-if="ph.f > 0"><span class="text-rose-300" x-text="_F+ph.f+'g'"></span></template>
+                            <template x-if="ph.p > 0"><span class="text-rose-300" x-text="_P+ph.p+'g'"></span></template>
+                            <template x-if="ph.c > 0"><span class="text-indigo-300" x-text="_C+ph.c+'g'"></span></template>
+                            <template x-if="ph.f > 0"><span class="text-amber-300" x-text="_F+ph.f+'g'"></span></template>
                         </div>
                     </div>
                 </template>
@@ -186,9 +186,9 @@ $meals = $isAr ? [
                     <small class="font-sans text-sm font-medium text-zinc-500">kcal</small>
                 </div>
                 <div class="ms-auto flex gap-4 font-mono text-sm font-semibold tabular-nums">
-                    <span class="text-indigo-300" x-text="_P+meal.total.p+'g'"></span>
-                    <span class="text-amber-300" x-text="_C+meal.total.c+'g'"></span>
-                    <span class="text-rose-300" x-text="_F+meal.total.f+'g'"></span>
+                    <span class="text-rose-300" x-text="_P+meal.total.p+'g'"></span>
+                    <span class="text-indigo-300" x-text="_C+meal.total.c+'g'"></span>
+                    <span class="text-amber-300" x-text="_F+meal.total.f+'g'"></span>
                 </div>
             </div>
         </div>

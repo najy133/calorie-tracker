@@ -1,5 +1,19 @@
 @import 'tailwindcss';
 
+[x-cloak] { display: none !important; }
+
+/* Buttons default to the arrow cursor in the browser / Tailwind v4 reset,
+   while links get a pointer — make every real, enabled control show the
+   pointer so hover affordance is consistent across the app. */
+@layer base {
+    button:not(:disabled),
+    [role="button"]:not(:disabled),
+    label[for],
+    summary {
+        cursor: pointer;
+    }
+}
+
 @source '../views/**/*.blade.php';
 @source '../js/**/*.js';
 @source '../../app/View/Components/**/*.php';
@@ -99,4 +113,29 @@
 }
 .step-in {
     animation: step-in 480ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Newly saved meal row — brief emerald wash as save feedback */
+@keyframes row-flash {
+    0%   { background-color: rgb(16 185 129 / 0.14); }
+    100% { background-color: transparent; }
+}
+.row-flash {
+    animation: row-flash 1.6s ease-out 1 both;
+}
+
+/* Streak flame — gentle flicker from the base, like a small candle */
+@keyframes flame-flicker {
+    0%, 100% { transform: scale(1) rotate(0deg);      opacity: 1; }
+    20%      { transform: scale(1.12, 0.92) rotate(-4deg); opacity: 0.9; }
+    40%      { transform: scale(0.94, 1.1) rotate(3deg);   opacity: 1; }
+    60%      { transform: scale(1.08, 0.96) rotate(-2deg); opacity: 0.92; }
+    80%      { transform: scale(0.97, 1.04) rotate(2deg);  opacity: 1; }
+}
+.flame-flicker {
+    animation: flame-flicker 1.4s ease-in-out infinite;
+    transform-origin: 50% 95%;
+}
+@media (prefers-reduced-motion: reduce) {
+    .flame-flicker { animation: none; }
 }

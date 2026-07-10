@@ -7,13 +7,46 @@
     </div>
 
     {{-- Header --}}
-    <header class="relative z-10 flex items-center justify-between px-6 md:px-8 py-5">
-        <a href="{{ route('dashboard') }}" class="text-sm hover:opacity-80 transition"><x-wordmark /></a>
-        @if($step !== 'done')
-            <button wire:click="chooseManual" class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
-                {{ $step === 'welcome' ? __('Skip for now') : __('Exit setup') }}
+    <header x-data="{
+                dark: document.documentElement.classList.contains('dark'),
+                toggle() {
+                    this.dark = !this.dark;
+                    document.documentElement.classList.toggle('dark', this.dark);
+                    localStorage.setItem('theme', this.dark ? 'dark' : 'light');
+                }
+            }"
+            class="relative z-10 flex items-center justify-between px-6 md:px-8 py-5">
+        <a href="{{ route('dashboard') }}" class="text-2xl hover:opacity-80 transition"><x-wordmark /></a>
+
+        <div class="flex items-center gap-2">
+            {{-- Language toggle --}}
+            <form method="POST" action="{{ route('locale.switch') }}">
+                @csrf
+                <input type="hidden" name="locale" value="{{ app()->getLocale() === 'ar' ? 'en' : 'ar' }}">
+                <button type="submit"
+                        class="px-2.5 py-1 rounded-md text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition tracking-wide">
+                    {{ app()->getLocale() === 'ar' ? 'EN' : 'عربي' }}
+                </button>
+            </form>
+
+            {{-- Dark mode toggle --}}
+            <button type="button" @click="toggle()"
+                    class="p-1.5 rounded-lg text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+                    :title="dark ? '{{ __('Switch to light mode') }}' : '{{ __('Switch to dark mode') }}'">
+                <svg x-show="dark" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14A7 7 0 0012 5z"/>
+                </svg>
+                <svg x-show="!dark" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
             </button>
-        @endif
+
+            @if($step !== 'done')
+                <button wire:click="chooseManual" class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition ms-1">
+                    {{ $step === 'welcome' ? __('Skip for now') : __('Exit setup') }}
+                </button>
+            @endif
+        </div>
     </header>
 
     {{-- Step navigator + progress bar --}}
@@ -35,74 +68,54 @@
         <div class="relative z-10 px-6 md:px-8 mb-4">
             <div class="max-w-[560px] mx-auto">
 
-                {{-- Pills: desktop only --}}
-                <div class="hidden md:flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+                {{-- Stepper: numbered nodes + connectors read as navigable steps
+                     (done = check, current = ring, upcoming = muted). Labels show on
+                     desktop; mobile shows the current step name below the nodes. --}}
+                <div class="flex items-start">
                     @foreach($navSteps as $idx => $s)
-                        <button wire:click="jumpTo('{{ $s['id'] }}')"
-                                class="shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-all whitespace-nowrap
-                                    {{ $idx === $currentIdx
-                                        ? 'bg-emerald-600 text-white border-emerald-600 cursor-default'
-                                        : ($idx < $currentIdx
-                                            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer'
-                                            : 'bg-transparent text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 cursor-pointer') }}">
-                            {{ $s['label'] }}
-                        </button>
+                        @php $done = $idx < $currentIdx; $current = $idx === $currentIdx; @endphp
+                        <div class="flex-1 flex flex-col items-center">
+                            <div class="flex items-center w-full">
+                                {{-- left connector --}}
+                                <div class="h-0.5 flex-1 rounded-full {{ $idx === 0 ? 'opacity-0' : ($idx <= $currentIdx ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-700') }}"></div>
+
+                                <button type="button" wire:click="jumpTo('{{ $s['id'] }}')"
+                                        @if($current) aria-current="step" @endif
+                                        title="{{ $s['label'] }}"
+                                        class="shrink-0 mx-1 w-7 h-7 rounded-full border flex items-center justify-center text-xs font-semibold transition
+                                            {{ $done
+                                                ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700'
+                                                : ($current
+                                                    ? 'bg-emerald-600 border-emerald-600 text-white ring-4 ring-emerald-100 dark:ring-emerald-900/40 cursor-default'
+                                                    : 'bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-600 text-zinc-400 dark:text-zinc-500 hover:border-emerald-400 dark:hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400') }}">
+                                    @if($done)
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    @else
+                                        {{ $idx + 1 }}
+                                    @endif
+                                </button>
+
+                                {{-- right connector --}}
+                                <div class="h-0.5 flex-1 rounded-full {{ $idx === count($navSteps) - 1 ? 'opacity-0' : ($idx < $currentIdx ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-700') }}"></div>
+                            </div>
+                            <span class="hidden md:block mt-2 text-[11px] whitespace-nowrap transition-colors
+                                {{ $current
+                                    ? 'text-zinc-900 dark:text-zinc-50 font-semibold'
+                                    : ($done ? 'text-zinc-600 dark:text-zinc-400' : 'text-zinc-400 dark:text-zinc-600') }}">
+                                {{ $s['label'] }}
+                            </span>
+                        </div>
                     @endforeach
                 </div>
 
-                @if($stepNum > 0)
-                    <div class="h-0.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden md:mt-3">
-                        <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full transition-all duration-700"
-                             style="width: {{ ($stepNum / 6) * 100 }}%"></div>
-                    </div>
-                @endif
+                {{-- Current step name: mobile only (nodes are label-less on mobile) --}}
+                <p class="md:hidden mt-2.5 text-center text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    {{ __('Step :n of :total', ['n' => $currentIdx + 1, 'total' => count($navSteps)]) }}
+                    <span class="text-zinc-900 dark:text-zinc-50">· {{ $navSteps[$currentIdx]['label'] ?? '' }}</span>
+                </p>
             </div>
         </div>
     @endif
-
-    {{-- Floating step navigator: mobile only --}}
-    <div wire:ignore
-         x-data="{
-             open: false,
-             steps: ['welcome','details','activity','goal','eating','context','result'],
-             labels: {{ json_encode(array_column($navSteps, 'label', 'id'), JSON_UNESCAPED_UNICODE) }},
-             get cur() { return this.steps.indexOf($wire.step); },
-             get show() { return !['calc','done'].includes($wire.step); }
-         }"
-         x-show="show"
-         class="fixed bottom-4 right-4 z-50 flex md:hidden flex-col items-end gap-2">
-
-        <div x-show="open"
-             x-transition:enter="transition ease-out duration-150"
-             x-transition:enter-start="opacity-0 translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-100"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-2"
-             class="flex flex-col gap-1.5 items-end">
-            <template x-for="(key, idx) in steps" :key="key">
-                <button
-                    @click="idx !== cur ? ($wire.jumpTo(key), open = false) : null"
-                    :class="{
-                        'bg-emerald-600 text-white border-emerald-600 cursor-default': idx === cur,
-                        'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer': idx !== cur
-                    }"
-                    class="text-xs font-medium px-3 py-1.5 rounded-full border transition whitespace-nowrap shadow-sm"
-                    x-text="labels[key]">
-                </button>
-            </template>
-        </div>
-
-        <button @click="open = !open"
-                class="w-10 h-10 rounded-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-md flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-400 transition">
-            <svg x-show="!open" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
-            </svg>
-            <svg x-show="open" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-        </button>
-    </div>
 
     {{-- Stage --}}
     <main class="relative z-10 px-6 md:px-8 pb-16 pt-6">
@@ -132,7 +145,7 @@
                                     <span class="text-sm font-semibold">{{ __('Set up with AI') }}</span>
                                     <span class="font-mono text-[9px] font-semibold uppercase tracking-widest bg-emerald-500 text-white px-2 py-0.5 rounded-full">{{ __('Recommended') }}</span>
                                 </div>
-                                <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('Four quick questions. We calculate the rest.') }}</p>
+                                <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('A few quick questions. We calculate the rest.') }}</p>
                             </div>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform">
                                 <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
@@ -220,7 +233,7 @@
                     </div>
 
                     <button wire:click="next"
-                            class="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20">
+                            class="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20">
                         {{ __('Continue') }}
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
@@ -279,7 +292,7 @@
                             {{ __('Back') }}
                         </button>
                         <button wire:click="next"
-                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
+                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
                                 @disabled(!$activity)>
                             {{ __('Continue') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -372,7 +385,7 @@
                             {{ __('Back') }}
                         </button>
                         <button wire:click="next"
-                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
+                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
                                 @disabled(!$goal || ($goal === 'other' && !trim($goalNotes)))>
                             {{ __('Continue') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -428,7 +441,7 @@
                             {{ __('Back') }}
                         </button>
                         <button wire:click="next"
-                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
+                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 disabled:opacity-40"
                                 @disabled(!$eatingHabit)>
                             {{ __('Continue') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -459,7 +472,7 @@
                             {{ __('Back') }}
                         </button>
                         <button wire:click="next"
-                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20">
+                                class="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20">
                             {{ __('Calculate my target') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>
@@ -509,7 +522,7 @@
 
                         {{-- Adjust pill --}}
                         <div class="mt-4 inline-flex items-center gap-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-full px-3 py-2 shadow-sm">
-                            <button wire:click="adjust(-100)"
+                            <button wire:click="nudgeTarget(-100)"
                                     class="w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             </button>
@@ -519,11 +532,20 @@
                                 @else {{ __('Adjusted') }} {{ $adjust }}
                                 @endif
                             </span>
-                            <button wire:click="adjust(100)"
+                            <button wire:click="nudgeTarget(100)"
                                     class="w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             </button>
                         </div>
+
+                        @if($previousTarget > 0 && $previousTarget !== $final)
+                            <p class="mt-4 inline-flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                                <span>{{ __('Previous target') }}</span>
+                                <span class="font-mono">{{ number_format($previousTarget) }}</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-zinc-400 dark:text-zinc-500 rtl:-scale-x-100" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                                <span class="font-mono font-semibold text-zinc-900 dark:text-zinc-50">{{ number_format($final) }}</span>
+                            </p>
+                        @endif
                     </div>
 
                     {{-- Macro split --}}
@@ -532,9 +554,9 @@
                     @endphp
                     <div class="grid grid-cols-3 gap-2.5 mb-5">
                         @foreach([
-                            ['label' => 'P', 'name' => __('Protein'), 'val' => $protein, 'color' => '#4f46e5', 'bg' => 'bg-indigo-500'],
-                            ['label' => 'C', 'name' => __('Carbs'),   'val' => $carbs,   'color' => '#f59e0b', 'bg' => 'bg-amber-400'],
-                            ['label' => 'F', 'name' => __('Fat'),     'val' => $fat,     'color' => '#f43f5e', 'bg' => 'bg-rose-500'],
+                            ['label' => 'P', 'name' => __('Protein'), 'val' => $protein, 'color' => '#f43f5e', 'bg' => 'bg-rose-500'],
+                            ['label' => 'C', 'name' => __('Carbs'),   'val' => $carbs,   'color' => '#4f46e5', 'bg' => 'bg-indigo-500'],
+                            ['label' => 'F', 'name' => __('Fat'),     'val' => $fat,     'color' => '#f59e0b', 'bg' => 'bg-amber-400'],
                         ] as $m)
                             <div class="rounded-xl border border-zinc-100 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-3">
                                 <div class="flex items-center gap-1 mb-2">
@@ -566,16 +588,48 @@
                         </p>
                     </div>
 
-                    {{-- Confirm --}}
-                    <button wire:click="confirm"
-                            class="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm shadow-emerald-600/20 mb-3">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        {{ __('Start tracking') }}
-                    </button>
-                    <div class="text-center">
-                        <button wire:click="back" class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
-                            ← {{ __('Back') }}
+                    {{-- Review summary — recap the inputs so saving is a deliberate confirm --}}
+                    @php
+                        $sexLabel    = ['F' => __('Female'), 'M' => __('Male')][$sex] ?? $sex;
+                        $goalLabel   = ['lose' => __('Lose weight'), 'maintain' => __('Maintain'), 'build' => __('Build muscle'), 'other' => __('Custom')][$goal] ?? $goal;
+                        if ($goal === 'other' && $goalNotes) { $goalLabel = \Illuminate\Support\Str::limit($goalNotes, 40); }
+                        $eatingLabel = ['home' => __('Cook at home'), 'out' => __('Mostly eat out'), 'mix' => __('Mix of both')][$eatingHabit] ?? $eatingHabit;
+                        $summaryRows = array_values(array_filter([
+                            $age          ? ['label' => __('Age'),            'value' => $age . ' ' . __('yrs')]     : null,
+                            $sex          ? ['label' => __('Biological sex'), 'value' => $sexLabel]                  : null,
+                            $weightKg     ? ['label' => __('Current weight'), 'value' => $weightKg . ' ' . __('kg')] : null,
+                            $heightCm     ? ['label' => __('Height'),         'value' => $heightCm . ' ' . __('cm')] : null,
+                            $activityName ? ['label' => __('Activity level'), 'value' => $activityName]              : null,
+                            $goal         ? ['label' => __('Your goal'),      'value' => $goalLabel]                 : null,
+                            $eatingHabit  ? ['label' => __('Eating habits'),  'value' => $eatingLabel]               : null,
+                        ]));
+                    @endphp
+                    @if(count($summaryRows))
+                        <div class="mb-6">
+                            <p class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-emerald-600 dark:text-emerald-400 mb-3">{{ __('Based on your answers') }}</p>
+                            <dl class="rounded-xl border border-zinc-100 dark:border-zinc-800 divide-y divide-zinc-100 dark:divide-zinc-800 overflow-hidden">
+                                @foreach($summaryRows as $row)
+                                    <div class="flex items-center justify-between gap-4 px-4 py-2.5 text-sm">
+                                        <dt class="text-zinc-500 dark:text-zinc-400 shrink-0">{{ $row['label'] }}</dt>
+                                        <dd class="min-w-0 truncate text-end font-medium text-zinc-900 dark:text-zinc-50">{{ $row['value'] }}</dd>
+                                    </div>
+                                @endforeach
+                            </dl>
+                        </div>
+                    @endif
+
+                    {{-- Confirm — sticky so the save action stays visible while reviewing --}}
+                    <div class="sticky bottom-0 -mx-6 px-6 pb-4 pt-8 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-zinc-950 dark:via-zinc-950/95">
+                        <button wire:click="confirm"
+                                class="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/25 mb-2">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            {{ $previousTarget > 0 ? __('Save target') : __('Start tracking') }}
                         </button>
+                        <div class="text-center">
+                            <button wire:click="back" class="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
+                                ← {{ __('Back') }}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -601,7 +655,7 @@
                             {{ __('Change my mind') }}
                         </button>
                         <button wire:click="chooseManual"
-                                class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition">
+                                class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition">
                             {{ __('Take me to profile') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>

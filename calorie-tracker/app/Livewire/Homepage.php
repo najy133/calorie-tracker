@@ -28,6 +28,9 @@ class Homepage extends Component
     public ?int $editingId = null;
     public string $editFood = '';
 
+    // The entry created by the last save — its row flashes briefly as feedback
+    public ?int $lastSavedId = null;
+
     public function mount(): void
     {
         $this->dailyGoal     = auth()->check() ? (auth()->user()->daily_goal ?? 2000) : 2000;
@@ -88,7 +91,7 @@ class Homepage extends Component
 
         if ($this->calories <= 0 || blank($this->food)) return;
 
-        Entry::create([
+        $entry = Entry::create([
             'user_id'  => auth()->id(),
             'food'     => $this->food,
             'calories' => $this->calories,
@@ -96,6 +99,8 @@ class Homepage extends Component
             'carbs'    => $this->carbs,
             'fat'      => $this->fat,
         ]);
+
+        $this->lastSavedId = $entry->id;
 
         $this->todayCalories = $this->queryTodayCalories();
         $this->streak        = $this->calculateStreak();
@@ -154,6 +159,29 @@ class Homepage extends Component
     {
         $this->editingId = null;
         $this->editFood  = '';
+    }
+
+    // Styled confirm-before-delete: the row's ✕ stores the entry and opens the
+    // modal; the modal's destructive button calls deleteConfirmed().
+    public ?int $confirmingDeleteId = null;
+    public string $confirmingDeleteFood = '';
+
+    public function confirmDelete(int $id): void
+    {
+        $entry = Entry::where('id', $id)->where('user_id', auth()->id())->first();
+        if (!$entry) return;
+
+        $this->confirmingDeleteId   = $entry->id;
+        $this->confirmingDeleteFood = $entry->food;
+    }
+
+    public function deleteConfirmed(): void
+    {
+        if ($this->confirmingDeleteId === null) return;
+
+        $this->delete($this->confirmingDeleteId);
+        $this->confirmingDeleteId   = null;
+        $this->confirmingDeleteFood = '';
     }
 
     public function delete(int $id): void
