@@ -24,17 +24,17 @@
         </header>
 
         <section class="border-t border-zinc-100 dark:border-zinc-800/70 pt-8">
-            <p class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-emerald-600 dark:text-emerald-400 mb-1.5">{{ __('Account') }}</p>
+            <h2 class="font-serif text-2xl md:text-[1.75rem] text-zinc-900 dark:text-zinc-50 tracking-tight leading-tight mb-1.5">{{ __('Account') }}</h2>
             @include('profile.partials.update-profile-information-form')
         </section>
 
         <section class="border-t border-zinc-100 dark:border-zinc-800/70 pt-8">
-            <p class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-emerald-600 dark:text-emerald-400 mb-1.5">{{ __('Security') }}</p>
+            <h2 class="font-serif text-2xl md:text-[1.75rem] text-zinc-900 dark:text-zinc-50 tracking-tight leading-tight mb-1.5">{{ __('Security') }}</h2>
             @include('profile.partials.update-password-form')
         </section>
 
         <section class="border-t border-zinc-100 dark:border-zinc-800/70 pt-8">
-            <p class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-rose-600 dark:text-rose-400 mb-1.5">{{ __('Danger zone') }}</p>
+            <h2 class="font-serif text-2xl md:text-[1.75rem] text-rose-600 dark:text-rose-400 tracking-tight leading-tight mb-1.5">{{ __('Danger zone') }}</h2>
             @include('profile.partials.delete-user-form')
         </section>
 
