@@ -554,9 +554,9 @@
                     @endphp
                     <div class="grid grid-cols-3 gap-2.5 mb-5">
                         @foreach([
-                            ['label' => 'P', 'name' => __('Protein'), 'val' => $protein, 'color' => '#4f46e5', 'bg' => 'bg-indigo-500'],
-                            ['label' => 'C', 'name' => __('Carbs'),   'val' => $carbs,   'color' => '#f59e0b', 'bg' => 'bg-amber-400'],
-                            ['label' => 'F', 'name' => __('Fat'),     'val' => $fat,     'color' => '#f43f5e', 'bg' => 'bg-rose-500'],
+                            ['label' => 'P', 'name' => __('Protein'), 'val' => $protein, 'color' => '#f43f5e', 'bg' => 'bg-rose-500'],
+                            ['label' => 'C', 'name' => __('Carbs'),   'val' => $carbs,   'color' => '#4f46e5', 'bg' => 'bg-indigo-500'],
+                            ['label' => 'F', 'name' => __('Fat'),     'val' => $fat,     'color' => '#f59e0b', 'bg' => 'bg-amber-400'],
                         ] as $m)
                             <div class="rounded-xl border border-zinc-100 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-3">
                                 <div class="flex items-center gap-1 mb-2">
