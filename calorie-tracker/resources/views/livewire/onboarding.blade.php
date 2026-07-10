@@ -52,15 +52,6 @@
     {{-- Step navigator + progress bar --}}
     @php
         $stepNum  = match($step) { 'details' => 1, 'activity' => 2, 'goal' => 3, 'eating' => 4, 'context' => 5, 'calc', 'result' => 6, default => 0 };
-        $navSteps = [
-            ['id' => 'welcome',  'label' => __('Welcome')],
-            ['id' => 'details',  'label' => __('Details')],
-            ['id' => 'activity', 'label' => __('Activity')],
-            ['id' => 'goal',     'label' => __('Goal')],
-            ['id' => 'eating',   'label' => __('Eating')],
-            ['id' => 'context',  'label' => __('Context')],
-            ['id' => 'result',   'label' => __('Result')],
-        ];
         $navIds      = array_column($navSteps, 'id');
         $currentIdx  = ($k = array_search($step, $navIds)) !== false ? $k : -1;
     @endphp
