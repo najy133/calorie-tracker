@@ -18,6 +18,8 @@ class CalorieEstimator
             ->using(Provider::OpenAI, 'gpt-4o-mini')
             ->withSystemPrompt('You are a nutrition expert. Always respond with valid JSON only — no markdown, no code fences, no extra text.')
             ->withPrompt($this->buildPrompt($food, $locale))
+            // Bound the request so a slow/hung OpenAI call can't pin a PHP worker.
+            ->withClientOptions(['timeout' => 20, 'connect_timeout' => 8])
             ->asText()
             ->text;
 

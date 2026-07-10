@@ -4,18 +4,15 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Concerns\HasStreak;
+use App\Concerns\HasEntryActions;
 use App\Models\Entry;
-use App\Services\CalorieEstimator;
-use Illuminate\Support\Facades\RateLimiter;
 
 class Dashboard extends Component
 {
-    use HasStreak;
+    use HasStreak, HasEntryActions;
+
     public int $dailyGoal;
     public int $streak;
-
-    public ?int $editingId = null;
-    public string $editFood = '';
 
     // How many days of history to show before "Show earlier"
     public int $visibleDays = 3;
@@ -90,89 +87,6 @@ class Dashboard extends Component
     {
         $this->historyFilter = ($this->historyFilter === $date) ? 'week' : $date;
         $this->visibleDays   = 3;
-    }
-
-    public function startEdit(int $id): void
-    {
-        $entry = Entry::where('id', $id)->where('user_id', auth()->id())->firstOrFail();
-
-        $this->editingId = $id;
-        $this->editFood  = $entry->food;
-    }
-
-    public function saveEdit(): void
-    {
-        if (!$this->editingId || blank($this->editFood)) return;
-
-        $key = 'estimate:' . request()->ip();
-
-        if (RateLimiter::tooManyAttempts($key, maxAttempts: 10)) {
-            $seconds = RateLimiter::availableIn($key);
-            $this->addError('editFood', "Too many requests. Please wait {$seconds} seconds.");
-            return;
-        }
-
-        RateLimiter::hit($key, decaySeconds: 60);
-
-        try {
-            $result = app(CalorieEstimator::class)->estimate($this->editFood);
-
-            if ($result['not_food']) {
-                $this->addError('editFood', __("That doesn't look like food. Try something like \"chicken sandwich\" or \"2 eggs and toast\"."));
-                return;
-            }
-
-            Entry::where('id', $this->editingId)
-                ->where('user_id', auth()->id())
-                ->update([
-                    'food'     => $this->editFood,
-                    'calories' => $result['calories'],
-                    'protein'  => $result['protein'],
-                    'carbs'    => $result['carbs'],
-                    'fat'      => $result['fat'],
-                ]);
-
-            $this->cancelEdit();
-        } catch (\Throwable $e) {
-            $this->addError('editFood', 'Could not estimate calories. Please try again.');
-            \Log::error('CalorieEstimator failed on edit', ['error' => $e->getMessage(), 'food' => $this->editFood]);
-        }
-    }
-
-    public function cancelEdit(): void
-    {
-        $this->editingId = null;
-        $this->editFood  = '';
-    }
-
-    // Styled confirm-before-delete: the row's ✕ stores the entry and opens the
-    // modal; the modal's destructive button calls deleteConfirmed().
-    public ?int $confirmingDeleteId = null;
-    public string $confirmingDeleteFood = '';
-
-    public function confirmDelete(int $id): void
-    {
-        $entry = Entry::where('id', $id)->where('user_id', auth()->id())->first();
-        if (!$entry) return;
-
-        $this->confirmingDeleteId   = $entry->id;
-        $this->confirmingDeleteFood = $entry->food;
-    }
-
-    public function deleteConfirmed(): void
-    {
-        if ($this->confirmingDeleteId === null) return;
-
-        $this->delete($this->confirmingDeleteId);
-        $this->confirmingDeleteId   = null;
-        $this->confirmingDeleteFood = '';
-    }
-
-    public function delete(int $id): void
-    {
-        Entry::where('id', $id)
-            ->where('user_id', auth()->id())
-            ->delete();
     }
 
     public function render()

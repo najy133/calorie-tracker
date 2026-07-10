@@ -8,6 +8,9 @@ use App\Services\AITargetAdvisor;
 
 class Onboarding extends Component
 {
+    /** The ordered wizard steps — the single source of truth for navigation. */
+    public const STEPS = ['welcome', 'details', 'activity', 'goal', 'eating', 'context', 'result'];
+
     public string $step = 'welcome';
 
     public string  $name         = '';
@@ -129,25 +132,19 @@ class Onboarding extends Component
 
     public function back(): void
     {
-        $this->step = match ($this->step) {
-            'activity' => 'details',
-            'goal'     => 'activity',
-            'eating'   => 'goal',
-            'context'  => 'eating',
-            'result'   => 'context',
-            default    => 'welcome',
-        };
+        // Step back one along STEPS ('calc' isn't in STEPS, so it falls back to context).
+        $idx = array_search($this->step, self::STEPS, true);
+        $prev = ($idx === false || $idx === 0) ? 'welcome' : self::STEPS[$idx - 1];
+        $this->step = ($this->step === 'calc') ? 'context' : $prev;
 
-        if (!in_array($this->step, ['result'])) {
+        if ($this->step !== 'result') {
             $this->adjust = 0;
         }
     }
 
     public function jumpTo(string $target): void
     {
-        $allowed = ['welcome', 'details', 'activity', 'goal', 'eating', 'context', 'result'];
-
-        if (!in_array($target, $allowed)) return;
+        if (!in_array($target, self::STEPS, true)) return;
 
         if ($target === 'result' && $this->needsCalculation()) {
             $complete = $this->age && $this->sex && $this->weightKg && $this->heightCm && $this->activity && $this->goal;
@@ -249,13 +246,29 @@ class Onboarding extends Component
 
     public function confirm(): void
     {
-        $final = $this->target + $this->adjust;
+        // Public Livewire properties are client-writable, so the synced target,
+        // adjust, and profile fields can't be trusted — re-validate the inputs
+        // and clamp the derived numbers before persisting (the UI's ±500 clamp
+        // and step validations are all bypassable via the wire protocol).
+        $this->validate([
+            'age'         => 'required|integer|min:13|max:100',
+            'sex'         => 'required|in:M,F',
+            'weightKg'    => 'required|numeric|min:30|max:300',
+            'heightCm'    => 'required|integer|min:100|max:230',
+            'activity'    => 'required|in:sedentary,light,moderate,very',
+            'goal'        => 'required|in:lose,maintain,build,other',
+            'eatingHabit' => 'required|in:home,out,mix',
+            'goalNotes'   => 'nullable|string|max:500',
+            'healthNotes' => 'nullable|string|max:1000',
+        ]);
+
+        $final = max(800, min(10000, $this->target + $this->adjust));
 
         auth()->user()->update([
             'daily_goal'     => $final,
-            'target_protein' => $this->protein,
-            'target_carbs'   => $this->carbs,
-            'target_fat'     => $this->fat,
+            'target_protein' => max(0, min(1000, $this->protein)),
+            'target_carbs'   => max(0, min(2000, $this->carbs)),
+            'target_fat'     => max(0, min(1000, $this->fat)),
             'age'            => $this->age,
             'sex'            => $this->sex,
             'weight_kg'      => $this->weightKg,
@@ -322,6 +335,12 @@ class Onboarding extends Component
 
     public function render()
     {
-        return view('livewire.onboarding')->layout('layouts.wizard');
+        // Derive the stepper from STEPS so the view can't drift from the step machine.
+        $navSteps = array_map(
+            fn (string $id) => ['id' => $id, 'label' => __(ucfirst($id))],
+            self::STEPS,
+        );
+
+        return view('livewire.onboarding', compact('navSteps'))->layout('layouts.wizard');
     }
 }
