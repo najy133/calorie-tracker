@@ -248,8 +248,8 @@
                                             <button wire:click="startEdit({{ $entry->id }})"
                                                     class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                                     title="{{ __('Edit entry') }}">✎</button>
-                                            <button wire:click="delete({{ $entry->id }})"
-                                                    wire:confirm="{{ __('Remove this entry?') }}"
+                                            <button x-data x-on:click="$dispatch('open-modal', 'confirm-delete-entry')"
+                                                    wire:click="confirmDelete({{ $entry->id }})"
                                                     class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-rose-500 dark:hover:text-rose-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                                     title="{{ __('Remove entry') }}">✕</button>
                                         </div>
@@ -273,6 +273,21 @@
                 </div>
             @endif
         @endif
+
+        {{-- Confirm-delete modal --}}
+        <x-modal name="confirm-delete-entry" maxWidth="md" focusable>
+            <div class="p-6">
+                <h2 class="font-serif text-2xl text-zinc-900 dark:text-zinc-50">{{ __('Remove this entry?') }}</h2>
+                <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    <span class="font-medium text-zinc-900 dark:text-zinc-100">“{{ $confirmingDeleteFood }}”</span>
+                    {{ __('and its calories will be removed from your log. There is no undo.') }}
+                </p>
+                <div class="mt-6 flex justify-end gap-3">
+                    <x-secondary-button x-on:click="$dispatch('close')">{{ __('Cancel') }}</x-secondary-button>
+                    <x-danger-button x-on:click="$dispatch('close')" wire:click="deleteConfirmed">{{ __('Remove entry') }}</x-danger-button>
+                </div>
+            </div>
+        </x-modal>
     </div>
 
 </div>

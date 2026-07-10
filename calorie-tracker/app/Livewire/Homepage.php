@@ -161,6 +161,29 @@ class Homepage extends Component
         $this->editFood  = '';
     }
 
+    // Styled confirm-before-delete: the row's ✕ stores the entry and opens the
+    // modal; the modal's destructive button calls deleteConfirmed().
+    public ?int $confirmingDeleteId = null;
+    public string $confirmingDeleteFood = '';
+
+    public function confirmDelete(int $id): void
+    {
+        $entry = Entry::where('id', $id)->where('user_id', auth()->id())->first();
+        if (!$entry) return;
+
+        $this->confirmingDeleteId   = $entry->id;
+        $this->confirmingDeleteFood = $entry->food;
+    }
+
+    public function deleteConfirmed(): void
+    {
+        if ($this->confirmingDeleteId === null) return;
+
+        $this->delete($this->confirmingDeleteId);
+        $this->confirmingDeleteId   = null;
+        $this->confirmingDeleteFood = '';
+    }
+
     public function delete(int $id): void
     {
         Entry::where('id', $id)
