@@ -73,7 +73,7 @@
             </div>
             <x-input-error class="mt-1.5" :messages="$errors->get('daily_goal')" />
             <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-2">
-                {{ __('Typical adult range is 1,800–2,500 depending on activity. The ring will warn at 80% and turn red over 100%.') }}
+                {{ __('Typical adult range is 1,800–2,500 depending on activity. Your progress turns amber near 80% and red past 100%.') }}
             </p>
         </div>
 

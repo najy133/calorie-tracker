@@ -70,7 +70,7 @@
     {{-- ── Log a meal ── --}}
     <div class="mb-12">
         <div class="flex items-center justify-between gap-3 mb-3">
-            <span class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-emerald-600 dark:text-emerald-400">{{ __('Log a meal') }}</span>
+            <h2 class="font-serif text-2xl md:text-[1.75rem] text-zinc-900 dark:text-zinc-50 tracking-tight leading-tight">{{ __('Log a meal') }}</h2>
             <button wire:click="estimate"
                     wire:loading.attr="disabled"
                     wire:loading.class="opacity-60 cursor-not-allowed"
@@ -83,6 +83,8 @@
         </div>
 
         <textarea wire:model="food" rows="3"
+                  wire:keydown.meta.enter="estimate"
+                  wire:keydown.ctrl.enter="estimate"
                   placeholder="{{ __('Describe what you ate — e.g. chicken shawarma bowl, large') }}"
                   class="w-full resize-none rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 text-sm text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-400/30 focus:outline-none transition"></textarea>
         @error('food')
@@ -127,6 +129,10 @@
                         <span>{{ $explanation }}</span>
                     </div>
                 @endif
+
+                <p class="mt-4 pt-3 border-t border-emerald-200/70 dark:border-emerald-800/40 text-xs text-zinc-500 dark:text-zinc-400">
+                    {{ __("Doesn't look right? Edit the description above and estimate again.") }}
+                </p>
             </div>
         @endif
 
@@ -138,7 +144,7 @@
     {{-- ── Today's meals ── --}}
     <div>
         <div class="flex items-baseline justify-between mb-5">
-            <span class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-emerald-600 dark:text-emerald-400">{{ __("Today's meals") }}</span>
+            <h2 class="font-serif text-2xl md:text-[1.75rem] text-zinc-900 dark:text-zinc-50 tracking-tight leading-tight">{{ __("Today's meals") }}</h2>
             @auth
                 @if($todayEntries->isNotEmpty())
                     <span class="text-xs text-zinc-400 dark:text-zinc-500">{{ $todayEntries->count() }} {{ $todayEntries->count() === 1 ? __('entry') : __('entries') }}</span>
@@ -157,7 +163,7 @@
 
         @auth
             @forelse($todayEntries as $entry)
-                <div wire:key="{{ $entry->id }}" class="border-t border-zinc-100 dark:border-zinc-800/70 py-3">
+                <div wire:key="{{ $entry->id }}" class="border-t border-zinc-100 dark:border-zinc-800/70 py-3 {{ $lastSavedId === $entry->id ? 'row-flash' : '' }}">
                     @if($editingId === $entry->id)
                         <div class="space-y-2">
                             <input wire:model="editFood" type="text"

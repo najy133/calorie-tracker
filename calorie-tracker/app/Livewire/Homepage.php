@@ -28,6 +28,9 @@ class Homepage extends Component
     public ?int $editingId = null;
     public string $editFood = '';
 
+    // The entry created by the last save — its row flashes briefly as feedback
+    public ?int $lastSavedId = null;
+
     public function mount(): void
     {
         $this->dailyGoal     = auth()->check() ? (auth()->user()->daily_goal ?? 2000) : 2000;
@@ -88,7 +91,7 @@ class Homepage extends Component
 
         if ($this->calories <= 0 || blank($this->food)) return;
 
-        Entry::create([
+        $entry = Entry::create([
             'user_id'  => auth()->id(),
             'food'     => $this->food,
             'calories' => $this->calories,
@@ -96,6 +99,8 @@ class Homepage extends Component
             'carbs'    => $this->carbs,
             'fat'      => $this->fat,
         ]);
+
+        $this->lastSavedId = $entry->id;
 
         $this->todayCalories = $this->queryTodayCalories();
         $this->streak        = $this->calculateStreak();

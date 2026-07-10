@@ -93,6 +93,14 @@
         {{-- Bars band + goal line --}}
         <div class="relative flex items-end justify-between gap-2 md:gap-3 h-44">
             <div class="absolute inset-x-0 z-10 pointer-events-none border-t border-dashed border-zinc-300 dark:border-zinc-600" style="top: {{ $goalTop }}%"></div>
+            @if($weeklyData->sum('calories') === 0)
+                <div class="absolute inset-0 z-10 flex flex-col items-center justify-center text-center gap-1.5">
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Nothing logged this week yet.') }}</p>
+                    <a href="{{ route('home') }}" class="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+                        {{ __('Log your first meal to see your week') }} →
+                    </a>
+                </div>
+            @endif
             @foreach($weeklyData as $index => $day)
                 @php
                     $barColor = $day['pct'] >= 100

@@ -116,11 +116,9 @@
                         <div class="entry-1 flex items-center justify-between py-2.5 border-b border-zinc-800/60">
                             <div class="min-w-0 me-3">
                                 <p class="text-zinc-100 text-xs font-medium truncate">{{ __('Grilled chicken & rice') }}</p>
-                                <p class="text-zinc-600 text-xs mt-0.5">
-                                    12:34 {{ __('PM') }} ·
-                                    <span class="text-indigo-400">{{ __('P') }}52g</span>
-                                    <span class="text-amber-400 ms-1">{{ __('C') }}68g</span>
-                                    <span class="text-rose-400 ms-1">{{ __('F') }}12g</span>
+                                <p class="text-zinc-600 text-xs mt-0.5 flex items-center gap-1.5">
+                                    <span>12:34 {{ __('PM') }} ·</span>
+                                    <x-macros :protein="52" :carbs="68" :fat="12" class="text-xs" />
                                 </p>
                             </div>
                             <span class="font-mono text-xs text-zinc-300 shrink-0">580 kcal</span>
@@ -128,11 +126,9 @@
                         <div class="entry-2 flex items-center justify-between py-2.5 border-b border-zinc-800/60">
                             <div class="min-w-0 me-3">
                                 <p class="text-zinc-100 text-xs font-medium truncate">{{ __('2 eggs, toast with butter') }}</p>
-                                <p class="text-zinc-600 text-xs mt-0.5">
-                                    8:15 {{ __('AM') }} ·
-                                    <span class="text-indigo-400">{{ __('P') }}18g</span>
-                                    <span class="text-amber-400 ms-1">{{ __('C') }}28g</span>
-                                    <span class="text-rose-400 ms-1">{{ __('F') }}22g</span>
+                                <p class="text-zinc-600 text-xs mt-0.5 flex items-center gap-1.5">
+                                    <span>8:15 {{ __('AM') }} ·</span>
+                                    <x-macros :protein="18" :carbs="28" :fat="22" class="text-xs" />
                                 </p>
                             </div>
                             <span class="font-mono text-xs text-zinc-300 shrink-0">380 kcal</span>
@@ -140,11 +136,9 @@
                         <div class="entry-3 flex items-center justify-between py-2.5">
                             <div class="min-w-0 me-3">
                                 <p class="text-zinc-100 text-xs font-medium truncate">{{ __('Greek yogurt, granola') }}</p>
-                                <p class="text-zinc-600 text-xs mt-0.5">
-                                    7:30 {{ __('AM') }} ·
-                                    <span class="text-indigo-400">{{ __('P') }}15g</span>
-                                    <span class="text-amber-400 ms-1">{{ __('C') }}38g</span>
-                                    <span class="text-rose-400 ms-1">{{ __('F') }}6g</span>
+                                <p class="text-zinc-600 text-xs mt-0.5 flex items-center gap-1.5">
+                                    <span>7:30 {{ __('AM') }} ·</span>
+                                    <x-macros :protein="15" :carbs="38" :fat="6" class="text-xs" />
                                 </p>
                             </div>
                             <span class="font-mono text-xs text-zinc-300 shrink-0">324 kcal</span>
