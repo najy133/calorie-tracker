@@ -206,8 +206,7 @@
                                 <button wire:click="startEdit({{ $entry->id }})"
                                         class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                         title="{{ __('Edit entry') }}">✎</button>
-                                <button x-data x-on:click="$dispatch('open-modal', 'confirm-delete-entry')"
-                                        wire:click="confirmDelete({{ $entry->id }})"
+                                <button wire:click="confirmDelete({{ $entry->id }})"
                                         class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-rose-500 dark:hover:text-rose-400 transition opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                         title="{{ __('Remove entry') }}">✕</button>
                             </div>
@@ -221,20 +220,26 @@
                 </div>
             @endforelse
 
-            {{-- Confirm-delete modal --}}
-            <x-modal name="confirm-delete-entry" maxWidth="md" focusable>
-                <div class="p-6">
-                    <h2 class="font-serif text-2xl text-zinc-900 dark:text-zinc-50">{{ __('Remove this entry?') }}</h2>
-                    <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                        <span class="font-medium text-zinc-900 dark:text-zinc-100">“{{ $confirmingDeleteFood }}”</span>
-                        {{ __('and its calories will be removed from your log. There is no undo.') }}
-                    </p>
-                    <div class="mt-6 flex justify-end gap-3">
-                        <x-secondary-button x-on:click="$dispatch('close')">{{ __('Cancel') }}</x-secondary-button>
-                        <x-danger-button x-on:click="$dispatch('close')" wire:click="deleteConfirmed">{{ __('Remove entry') }}</x-danger-button>
+            {{-- Confirm-delete modal — visibility is pure Livewire state so DOM
+                 morphs can never desync it (Alpine x-show bindings don't survive
+                 morphs inside a Livewire tree) --}}
+            @if($confirmingDeleteId !== null)
+                <div class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0 flex items-start justify-center"
+                     x-data x-on:keydown.escape.window="$wire.set('confirmingDeleteId', null)">
+                    <div class="fixed inset-0 bg-zinc-900/50" wire:click="$set('confirmingDeleteId', null)"></div>
+                    <div class="step-in relative z-10 mt-24 w-full sm:max-w-md rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl p-6">
+                        <h2 class="font-serif text-2xl text-zinc-900 dark:text-zinc-50">{{ __('Remove this entry?') }}</h2>
+                        <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                            <span class="font-medium text-zinc-900 dark:text-zinc-100">“{{ $confirmingDeleteFood }}”</span>
+                            {{ __('and its calories will be removed from your log. There is no undo.') }}
+                        </p>
+                        <div class="mt-6 flex justify-end gap-3">
+                            <x-secondary-button wire:click="$set('confirmingDeleteId', null)">{{ __('Cancel') }}</x-secondary-button>
+                            <x-danger-button wire:click="deleteConfirmed" wire:loading.attr="disabled" wire:target="deleteConfirmed">{{ __('Remove entry') }}</x-danger-button>
+                        </div>
                     </div>
                 </div>
-            </x-modal>
+            @endif
         @endauth
     </div>
 
