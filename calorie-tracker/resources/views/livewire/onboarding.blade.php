@@ -145,7 +145,7 @@
                                     <span class="text-sm font-semibold">{{ __('Set up with AI') }}</span>
                                     <span class="font-mono text-[9px] font-semibold uppercase tracking-widest bg-emerald-500 text-white px-2 py-0.5 rounded-full">{{ __('Recommended') }}</span>
                                 </div>
-                                <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('Four quick questions. We calculate the rest.') }}</p>
+                                <p class="text-xs text-zinc-400 dark:text-zinc-500">{{ __('A few quick questions. We calculate the rest.') }}</p>
                             </div>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-60 group-hover:translate-x-0.5 transition-transform">
                                 <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
