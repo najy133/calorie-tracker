@@ -5,13 +5,14 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Concerns\HasStreak;
 use App\Concerns\HasEntryActions;
+use App\Concerns\HasMealType;
 use App\Models\Entry;
 use App\Services\MealSuggester;
 use Illuminate\Support\Facades\RateLimiter;
 
 class Dashboard extends Component
 {
-    use HasStreak, HasEntryActions;
+    use HasStreak, HasEntryActions, HasMealType;
 
     public int $dailyGoal;
     public int $streak;
@@ -28,8 +29,7 @@ class Dashboard extends Component
     // Bound to the "jump to date" picker
     public ?string $jumpDate = null;
 
-    // ── Meal ideas ──
-    public string $mealType = '';
+    // ── Meal ideas ── ($mealType comes from HasMealType)
     public array $suggestions = [];
 
     public function prevWeek(): void
@@ -72,24 +72,6 @@ class Dashboard extends Component
         $this->mealType  = $this->defaultMealType();
     }
 
-    // Pre-select the meal type by time of day so the button works with zero friction.
-    private function defaultMealType(): string
-    {
-        return match (true) {
-            now()->hour < 11 => 'breakfast',
-            now()->hour < 16 => 'lunch',
-            now()->hour < 21 => 'dinner',
-            default          => 'snack',
-        };
-    }
-
-    public function setMealType(string $type): void
-    {
-        if (in_array($type, ['breakfast', 'lunch', 'dinner', 'snack'], true)) {
-            $this->mealType = $type;
-        }
-    }
-
     public function suggestMeals(): void
     {
         $this->validate(['mealType' => 'required|in:breakfast,lunch,dinner,snack']);
@@ -128,13 +110,14 @@ class Dashboard extends Component
         if (!$s) return;
 
         Entry::create([
-            'user_id'  => auth()->id(),
-            'food'     => $s['name'],
-            'calories' => (int) $s['calories'],
-            'protein'  => (int) $s['protein'],
-            'carbs'    => (int) $s['carbs'],
-            'fat'      => (int) $s['fat'],
-            'source'   => 'ai',
+            'user_id'   => auth()->id(),
+            'food'      => $s['name'],
+            'calories'  => (int) $s['calories'],
+            'protein'   => (int) $s['protein'],
+            'carbs'     => (int) $s['carbs'],
+            'fat'       => (int) $s['fat'],
+            'source'    => 'ai',
+            'meal_type' => $this->currentMealType(),
         ]);
 
         unset($this->suggestions[$index]);
@@ -233,7 +216,7 @@ class Dashboard extends Component
 
         $entriesByDay = $historyQuery
             ->limit(200)
-            ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'source', 'created_at'])
+            ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'source', 'meal_type', 'created_at'])
             ->groupBy(fn ($e) => $e->created_at->toDateString());
 
         // Progressive "show earlier" only applies to the unfiltered "all" view

@@ -262,10 +262,17 @@
                             <span class="font-mono text-xs text-zinc-500 dark:text-zinc-400">{{ number_format($dayTotal) }} {{ __('kcal') }}</span>
                         </div>
 
-                        @foreach($entries as $entry)
-                            <div wire:key="{{ $entry->id }}" class="border-t border-zinc-100 dark:border-zinc-800/70 py-3">
-                                <x-entry-row :entry="$entry" :editing="$editingId === $entry->id" />
-                            </div>
+                        {{-- Within each day, grouped by meal slot --}}
+                        @foreach(\App\Models\Entry::MEAL_TYPES as $type)
+                            @php $group = $entries->where('meal_type', $type); @endphp
+                            @if($group->isNotEmpty())
+                                <p class="text-[11px] font-semibold uppercase tracking-wider rtl:tracking-normal text-zinc-400 dark:text-zinc-500 mt-3 mb-0.5">{{ __(ucfirst($type)) }}</p>
+                                @foreach($group as $entry)
+                                    <div wire:key="{{ $entry->id }}" class="border-t border-zinc-100 dark:border-zinc-800/70 py-3">
+                                        <x-entry-row :entry="$entry" :editing="$editingId === $entry->id" />
+                                    </div>
+                                @endforeach
+                            @endif
                         @endforeach
                     </div>
                 @endforeach
