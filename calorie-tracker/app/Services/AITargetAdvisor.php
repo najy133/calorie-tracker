@@ -33,6 +33,8 @@ class AITargetAdvisor
                 ->using(Provider::OpenAI, 'gpt-4o-mini')
                 ->withSystemPrompt('You are a registered dietitian and sports nutritionist. Always respond with valid JSON only — no markdown, no code fences, no extra text.')
                 ->withPrompt($this->buildPrompt($age, $sex, $weightKg, $heightCm, $activity, $goal, $goalNotes, $eatingHabit, $healthNotes, $mathTarget, $locale))
+                // temperature 0 → the same profile yields the same target on recalculation.
+                ->usingTemperature(0)
                 // Bound the request so a slow/hung OpenAI call can't pin a PHP worker.
                 ->withClientOptions(['timeout' => 25, 'connect_timeout' => 8])
                 ->asText()
