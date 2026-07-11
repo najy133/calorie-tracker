@@ -6,6 +6,8 @@ use Livewire\Component;
 use App\Concerns\HasStreak;
 use App\Concerns\HasEntryActions;
 use App\Models\Entry;
+use App\Services\MealSuggester;
+use Illuminate\Support\Facades\RateLimiter;
 
 class Dashboard extends Component
 {
@@ -25,6 +27,10 @@ class Dashboard extends Component
 
     // Bound to the "jump to date" picker
     public ?string $jumpDate = null;
+
+    // ── Meal ideas ──
+    public string $mealType = '';
+    public array $suggestions = [];
 
     public function prevWeek(): void
     {
@@ -63,6 +69,76 @@ class Dashboard extends Component
     {
         $this->dailyGoal = auth()->user()->daily_goal ?? 2000;
         $this->streak    = $this->calculateStreak();
+        $this->mealType  = $this->defaultMealType();
+    }
+
+    // Pre-select the meal type by time of day so the button works with zero friction.
+    private function defaultMealType(): string
+    {
+        return match (true) {
+            now()->hour < 11 => 'breakfast',
+            now()->hour < 16 => 'lunch',
+            now()->hour < 21 => 'dinner',
+            default          => 'snack',
+        };
+    }
+
+    public function setMealType(string $type): void
+    {
+        if (in_array($type, ['breakfast', 'lunch', 'dinner', 'snack'], true)) {
+            $this->mealType = $type;
+        }
+    }
+
+    public function suggestMeals(): void
+    {
+        $this->validate(['mealType' => 'required|in:breakfast,lunch,dinner,snack']);
+
+        $key = 'suggest:' . auth()->id();
+        if (RateLimiter::tooManyAttempts($key, maxAttempts: 8)) {
+            $seconds = RateLimiter::availableIn($key);
+            $this->addError('mealType', __('Too many requests. Please wait :seconds seconds.', ['seconds' => $seconds]));
+            return;
+        }
+        RateLimiter::hit($key, decaySeconds: 60);
+
+        $user      = auth()->user();
+        $eaten     = (int) Entry::where('user_id', $user->id)->whereDate('created_at', today())->sum('calories');
+        $remaining = max(0, $this->dailyGoal - $eaten);
+
+        $this->suggestions = app(MealSuggester::class)->suggest(
+            remainingCalories: $remaining,
+            mealType:          $this->mealType,
+            goal:              $user->goal ?? 'maintain',
+            eatingHabit:       $user->eating_habit ?? 'mix',
+            healthNotes:       $user->health_notes,
+            goalNotes:         $user->goal_notes,
+            locale:            app()->getLocale(),
+        );
+
+        if (empty($this->suggestions)) {
+            $this->addError('mealType', __('Could not generate ideas right now. Please try again.'));
+        }
+    }
+
+    // Log a suggested meal straight into today, then drop it from the list.
+    public function logSuggestion(int $index): void
+    {
+        $s = $this->suggestions[$index] ?? null;
+        if (!$s) return;
+
+        Entry::create([
+            'user_id'  => auth()->id(),
+            'food'     => $s['name'],
+            'calories' => (int) $s['calories'],
+            'protein'  => (int) $s['protein'],
+            'carbs'    => (int) $s['carbs'],
+            'fat'      => (int) $s['fat'],
+            'source'   => 'ai',
+        ]);
+
+        unset($this->suggestions[$index]);
+        $this->suggestions = array_values($this->suggestions);
     }
 
     public function showMore(): void
