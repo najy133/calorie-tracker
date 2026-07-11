@@ -71,16 +71,69 @@
     <div class="mb-12">
         <div class="flex items-center justify-between gap-3 mb-3">
             <h2 class="font-serif text-2xl md:text-[1.75rem] text-zinc-900 dark:text-zinc-50 tracking-tight leading-tight">{{ __('Log a meal') }}</h2>
-            <button wire:click="estimate"
-                    wire:loading.attr="disabled"
-                    wire:loading.class="opacity-60 cursor-not-allowed"
-                    wire:target="estimate"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-semibold shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition">
-                <span wire:loading wire:target="estimate" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                <svg wire:loading.remove wire:target="estimate" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg>
-                {{ __('Estimate') }}
-            </button>
+            @if(!$manualMode)
+                <button wire:click="estimate"
+                        wire:loading.attr="disabled"
+                        wire:loading.class="opacity-60 cursor-not-allowed"
+                        wire:target="estimate"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-semibold shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition">
+                    <span wire:loading wire:target="estimate" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <svg wire:loading.remove wire:target="estimate" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg>
+                    {{ __('Estimate') }}
+                </button>
+            @endif
         </div>
+
+        {{-- ── Manual entry: log calories directly ── --}}
+        @if($manualMode)
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-1.5">{{ __('Calories') }}</label>
+                    <div class="relative">
+                        <input type="number" min="1" wire:model="manualCalories" wire:keydown.enter="saveManual"
+                               placeholder="{{ __('e.g. 650') }}"
+                               class="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 ps-4 pe-14 py-3 font-mono text-lg text-zinc-900 dark:text-zinc-100 placeholder:font-sans placeholder:text-base placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-400/30 focus:outline-none transition" />
+                        <span class="absolute end-4 top-1/2 -translate-y-1/2 text-xs text-zinc-400 dark:text-zinc-500 pointer-events-none">{{ __('kcal') }}</span>
+                    </div>
+                    @error('manualCalories')
+                        <p class="mt-1.5 text-xs text-rose-500 dark:text-rose-400">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <input type="text" wire:model="manualFood" maxlength="255"
+                       placeholder="{{ __('What did you eat? (optional)') }}"
+                       class="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-400/30 focus:outline-none transition" />
+
+                <div>
+                    <p class="text-xs text-zinc-400 dark:text-zinc-500 mb-1.5">{{ __('Macros (optional)') }}</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        @foreach([['model' => 'manualProtein', 'letter' => __('P'), 'color' => 'text-rose-500 dark:text-rose-400'], ['model' => 'manualCarbs', 'letter' => __('C'), 'color' => 'text-indigo-500 dark:text-indigo-400'], ['model' => 'manualFat', 'letter' => __('F'), 'color' => 'text-amber-500 dark:text-amber-400']] as $m)
+                            <div class="relative">
+                                <span class="absolute start-3 top-1/2 -translate-y-1/2 text-xs font-bold {{ $m['color'] }} pointer-events-none">{{ $m['letter'] }}</span>
+                                <input type="number" min="0" wire:model="{{ $m['model'] }}" placeholder="0"
+                                       class="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 ps-7 pe-6 py-2 font-mono text-sm text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:border-emerald-400 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-400/30 focus:outline-none transition" />
+                                <span class="absolute end-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 dark:text-zinc-500 pointer-events-none">g</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 pt-1">
+                    <button wire:click="saveManual"
+                            wire:loading.attr="disabled"
+                            wire:loading.class="opacity-60 cursor-not-allowed"
+                            wire:target="saveManual"
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-5 py-2.5 text-sm font-semibold shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition">
+                        <span wire:loading wire:target="saveManual" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <svg wire:loading.remove wire:target="saveManual" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        {{ __('Add') }}
+                    </button>
+                    <button wire:click="toggleManual(false)" class="text-sm text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition">
+                        ← {{ __('Describe your meal instead') }}
+                    </button>
+                </div>
+            </div>
+        @else
 
         <textarea wire:model="food" rows="3"
                   wire:keydown.meta.enter="estimate"
@@ -138,6 +191,11 @@
 
         @if(!$food)
             <p class="mt-3 text-xs text-zinc-400 dark:text-zinc-500">{{ __('Type what you ate in plain English and let AI do the counting.') }}</p>
+        @endif
+
+        <button wire:click="toggleManual(true)" class="mt-3 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition">
+            {{ __('Already know the calories? Add them manually') }} →
+        </button>
         @endif
     </div>
 

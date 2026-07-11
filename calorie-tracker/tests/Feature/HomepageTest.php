@@ -249,3 +249,60 @@ it('resets macros after saving', function () {
         ->assertSet('carbs', 0)
         ->assertSet('fat', 0);
 });
+
+// ── Manual entry ─────────────────────────────────────────────────────────────
+
+it('logs a manual entry with just calories', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Homepage::class)
+        ->call('toggleManual', true)
+        ->set('manualCalories', 650)
+        ->call('saveManual')
+        ->assertHasNoErrors()
+        ->assertSet('manualCalories', null);
+
+    $entry = Entry::where('user_id', $user->id)->first();
+    expect($entry->calories)->toBe(650);
+    expect($entry->food)->toBe('Quick add'); // blank name falls back to a label
+    expect($entry->protein)->toBe(0);
+});
+
+it('keeps the name and optional macros on a manual entry', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Homepage::class)
+        ->set('manualFood', 'Al Baik broast meal')
+        ->set('manualCalories', 780)
+        ->set('manualProtein', 48)
+        ->call('saveManual')
+        ->assertHasNoErrors();
+
+    $entry = Entry::where('user_id', $user->id)->first();
+    expect($entry->food)->toBe('Al Baik broast meal');
+    expect($entry->calories)->toBe(780);
+    expect($entry->protein)->toBe(48);
+    expect($entry->carbs)->toBe(0);
+});
+
+it('requires calories for a manual entry', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Homepage::class)
+        ->set('manualFood', 'mystery meal')
+        ->call('saveManual')
+        ->assertHasErrors(['manualCalories' => 'required']);
+
+    expect(Entry::where('user_id', $user->id)->count())->toBe(0);
+});
+
+it('does not save a manual entry for guests', function () {
+    Livewire::test(Homepage::class)
+        ->set('manualCalories', 500)
+        ->call('saveManual');
+
+    expect(Entry::count())->toBe(0);
+});

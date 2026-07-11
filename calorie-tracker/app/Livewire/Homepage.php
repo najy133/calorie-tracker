@@ -30,6 +30,14 @@ class Homepage extends Component
     // The entry created by the last save — its row flashes briefly as feedback
     public ?int $lastSavedId = null;
 
+    // Manual entry — for when the user already knows the calories (e.g. off a menu)
+    public bool $manualMode = false;
+    public string $manualFood = '';
+    public ?int $manualCalories = null;
+    public ?int $manualProtein = null;
+    public ?int $manualCarbs = null;
+    public ?int $manualFat = null;
+
     public function mount(): void
     {
         $this->dailyGoal     = auth()->check() ? (auth()->user()->daily_goal ?? 2000) : 2000;
@@ -104,6 +112,47 @@ class Homepage extends Component
         $this->todayCalories = $this->queryTodayCalories();
         $this->streak        = $this->calculateStreak();
         $this->reset('food', 'calories', 'protein', 'carbs', 'fat', 'breakdown', 'explanation');
+    }
+
+    public function toggleManual(bool $on): void
+    {
+        $this->manualMode = $on;
+        $this->resetErrorBag();
+
+        if (!$on) {
+            $this->reset('manualFood', 'manualCalories', 'manualProtein', 'manualCarbs', 'manualFat');
+        }
+    }
+
+    // Log calories directly, no AI — calories required, name and macros optional.
+    public function saveManual(): void
+    {
+        if (!auth()->check()) {
+            $this->redirect(route('login'));
+            return;
+        }
+
+        $this->validate([
+            'manualCalories' => 'required|integer|min:1|max:20000',
+            'manualFood'     => 'nullable|string|max:255',
+            'manualProtein'  => 'nullable|integer|min:0|max:2000',
+            'manualCarbs'    => 'nullable|integer|min:0|max:2000',
+            'manualFat'      => 'nullable|integer|min:0|max:2000',
+        ]);
+
+        $entry = Entry::create([
+            'user_id'  => auth()->id(),
+            'food'     => trim($this->manualFood) ?: __('Quick add'),
+            'calories' => $this->manualCalories,
+            'protein'  => $this->manualProtein ?? 0,
+            'carbs'    => $this->manualCarbs ?? 0,
+            'fat'      => $this->manualFat ?? 0,
+        ]);
+
+        $this->lastSavedId   = $entry->id;
+        $this->todayCalories = $this->queryTodayCalories();
+        $this->streak        = $this->calculateStreak();
+        $this->reset('manualFood', 'manualCalories', 'manualProtein', 'manualCarbs', 'manualFat');
     }
 
     // Edit + confirm-delete live in the shared HasEntryActions trait; this hook
