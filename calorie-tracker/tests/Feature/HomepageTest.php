@@ -363,3 +363,18 @@ it('does not reuse another user\'s manual entry', function () {
         ->assertSet('calories', 111)
         ->assertSet('reusedManual', false);
 });
+
+it('forces a fresh AI estimate when the user overrides a remembered entry', function () {
+    $user = User::factory()->create();
+    Entry::create(['user_id' => $user->id, 'food' => 'kabsa', 'calories' => 700, 'protein' => 30, 'carbs' => 70, 'fat' => 20, 'source' => 'manual']);
+
+    // With forceFresh the estimator IS called, and the remembered value is ignored.
+    $this->mock(CalorieEstimator::class)->shouldReceive('estimate')->once()
+        ->andReturn(['not_food' => false, 'calories' => 1100, 'protein' => 55, 'carbs' => 120, 'fat' => 35, 'explanation' => 'Large plate.', 'breakdown' => []]);
+
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->set('food', 'kabsa')
+        ->call('estimate', true) // "Estimate with AI instead"
+        ->assertSet('calories', 1100)
+        ->assertSet('reusedManual', false);
+});

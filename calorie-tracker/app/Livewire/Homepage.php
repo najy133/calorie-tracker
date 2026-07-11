@@ -55,13 +55,14 @@ class Homepage extends Component
         $this->resetErrorBag('food');
     }
 
-    public function estimate(): void
+    public function estimate(bool $forceFresh = false): void
     {
         $this->validate();
 
         // If the user has logged this exact food manually before, reuse their
-        // verified numbers instead of asking the AI to guess again.
-        if ($remembered = $this->rememberedManualEntry()) {
+        // verified numbers instead of asking the AI to guess again — unless they
+        // explicitly asked for a fresh AI estimate via "Estimate with AI instead".
+        if (!$forceFresh && $remembered = $this->rememberedManualEntry()) {
             $this->calories     = $remembered->calories;
             $this->protein      = $remembered->protein;
             $this->carbs        = $remembered->carbs;

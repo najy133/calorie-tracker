@@ -183,9 +183,24 @@
                     </div>
                 @endif
 
-                <p class="mt-4 pt-3 border-t border-emerald-200/70 dark:border-emerald-800/40 text-xs text-zinc-500 dark:text-zinc-400">
-                    {{ __("Doesn't look right? Edit the description above and estimate again.") }}
-                </p>
+                <div class="mt-4 pt-3 border-t border-emerald-200/70 dark:border-emerald-800/40">
+                    @if($reusedManual)
+                        {{-- Reused a past manual entry — let the user override with a fresh AI estimate (e.g. a different portion) --}}
+                        <button wire:click="estimate(true)"
+                                wire:loading.attr="disabled"
+                                wire:loading.class="opacity-60 cursor-not-allowed"
+                                wire:target="estimate"
+                                class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 transition">
+                            <span wire:loading wire:target="estimate" class="inline-block w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></span>
+                            <svg wire:loading.remove wire:target="estimate" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg>
+                            {{ __('Estimate with AI instead') }}
+                        </button>
+                    @else
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                            {{ __("Doesn't look right? Edit the description above and estimate again.") }}
+                        </p>
+                    @endif
+                </div>
             </div>
         @endif
 
