@@ -97,3 +97,51 @@ it('cannot delete another user\'s entry from the dashboard', function () {
 
     expect(Entry::find($entry->id))->not->toBeNull();
 });
+
+// ── Meal suggestions ─────────────────────────────────────────────────────────
+
+it('generates meal suggestions from the suggester', function () {
+    $user = User::factory()->create(['daily_goal' => 2000, 'goal' => 'lose', 'eating_habit' => 'mix']);
+
+    $this->mock(\App\Services\MealSuggester::class)
+        ->shouldReceive('suggest')->once()
+        ->andReturn([
+            ['name' => 'Grilled chicken salad', 'calories' => 350, 'protein' => 30, 'carbs' => 12, 'fat' => 15, 'why' => 'High protein, light.'],
+            ['name' => 'Lentil soup', 'calories' => 220, 'protein' => 12, 'carbs' => 30, 'fat' => 4, 'why' => 'Filling and low-cal.'],
+        ]);
+
+    Livewire::actingAs($user)->test(Dashboard::class)
+        ->set('mealType', 'lunch')
+        ->call('suggestMeals')
+        ->assertHasNoErrors()
+        ->assertCount('suggestions', 2)
+        ->assertSee('Grilled chicken salad');
+});
+
+it('logs a suggestion straight into today and removes it from the list', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)->test(Dashboard::class)
+        ->set('suggestions', [
+            ['name' => 'Lentil soup', 'calories' => 220, 'protein' => 12, 'carbs' => 30, 'fat' => 4, 'why' => 'Filling.'],
+        ])
+        ->call('logSuggestion', 0)
+        ->assertCount('suggestions', 0);
+
+    $entry = Entry::where('user_id', $user->id)->first();
+    expect($entry->food)->toBe('Lentil soup');
+    expect($entry->calories)->toBe(220);
+    expect($entry->source)->toBe('ai'); // a suggestion is an AI estimate
+});
+
+it('surfaces a friendly error when the suggester returns nothing', function () {
+    $user = User::factory()->create();
+
+    $this->mock(\App\Services\MealSuggester::class)
+        ->shouldReceive('suggest')->once()->andReturn([]);
+
+    Livewire::actingAs($user)->test(Dashboard::class)
+        ->set('mealType', 'dinner')
+        ->call('suggestMeals')
+        ->assertHasErrors('mealType');
+});

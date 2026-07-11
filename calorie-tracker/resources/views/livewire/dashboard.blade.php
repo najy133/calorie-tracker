@@ -56,6 +56,64 @@
         </div>
     </div>
 
+    {{-- ── Meal ideas ── --}}
+    <div class="pb-10 mb-10 border-b border-zinc-200/70 dark:border-zinc-800/80">
+        <h2 class="font-serif text-2xl md:text-[1.75rem] text-zinc-900 dark:text-zinc-50 tracking-tight leading-tight">{{ __('Meal ideas') }}</h2>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{{ __('AI ideas that fit your goal and what\'s left in your day.') }}</p>
+
+        <div class="flex flex-wrap items-center gap-2 mt-5">
+            @foreach(['breakfast' => __('Breakfast'), 'lunch' => __('Lunch'), 'dinner' => __('Dinner'), 'snack' => __('Snack')] as $type => $label)
+                <button wire:click="setMealType('{{ $type }}')"
+                        class="px-3.5 py-1.5 rounded-full text-xs font-medium transition whitespace-nowrap
+                            {{ $mealType === $type
+                                ? 'bg-emerald-600 text-white'
+                                : 'text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400' }}">
+                    {{ $label }}
+                </button>
+            @endforeach
+
+            <button wire:click="suggestMeals"
+                    wire:loading.attr="disabled"
+                    wire:loading.class="opacity-60 cursor-not-allowed"
+                    wire:target="suggestMeals"
+                    class="inline-flex items-center gap-1.5 ms-1 rounded-lg bg-emerald-600 text-white px-4 py-2 text-sm font-semibold shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 transition">
+                <span wire:loading wire:target="suggestMeals" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <svg wire:loading.remove wire:target="suggestMeals" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/></svg>
+                <span wire:loading.remove wire:target="suggestMeals">{{ __('Suggest meals') }}</span>
+                <span wire:loading wire:target="suggestMeals">{{ __('Thinking…') }}</span>
+            </button>
+        </div>
+
+        @error('mealType')
+            <p class="mt-2 text-xs text-rose-500 dark:text-rose-400">{{ $message }}</p>
+        @enderror
+
+        @if(count($suggestions))
+            <div wire:transition class="mt-5 grid gap-3 sm:grid-cols-3">
+                @foreach($suggestions as $i => $s)
+                    <div wire:key="suggestion-{{ $i }}" class="flex flex-col rounded-xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+                        <p class="text-sm font-medium text-zinc-900 dark:text-zinc-50">{{ $s['name'] }}</p>
+                        <p class="font-mono text-lg font-bold text-zinc-900 dark:text-zinc-50 leading-none mt-1.5">
+                            {{ number_format($s['calories']) }}<span class="text-xs font-normal text-zinc-500 dark:text-zinc-400 ms-1">{{ __('kcal') }}</span>
+                        </p>
+                        @if($s['protein'] || $s['carbs'] || $s['fat'])
+                            <x-macros :protein="$s['protein']" :carbs="$s['carbs']" :fat="$s['fat']" class="text-xs mt-2" />
+                        @endif
+                        @if($s['why'])
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed mt-2 flex-1">{{ $s['why'] }}</p>
+                        @endif
+                        <button wire:click="logSuggestion({{ $i }})"
+                                class="mt-3 inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 px-3 py-1.5 text-xs font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            {{ __('Log this') }}
+                        </button>
+                    </div>
+                @endforeach
+            </div>
+            <p class="mt-3 text-[11px] text-zinc-400 dark:text-zinc-500">{{ __('Rough estimates and ideas — not medical advice.') }}</p>
+        @endif
+    </div>
+
     @php $goalTop = $chartMax > 0 ? (1 - $dailyGoal / $chartMax) * 100 : 0; @endphp
 
     {{-- ── Row 1: Overview (weekly bar chart with week navigator) ── --}}
@@ -204,10 +262,17 @@
                             <span class="font-mono text-xs text-zinc-500 dark:text-zinc-400">{{ number_format($dayTotal) }} {{ __('kcal') }}</span>
                         </div>
 
-                        @foreach($entries as $entry)
-                            <div wire:key="{{ $entry->id }}" class="border-t border-zinc-100 dark:border-zinc-800/70 py-3">
-                                <x-entry-row :entry="$entry" :editing="$editingId === $entry->id" />
-                            </div>
+                        {{-- Within each day, grouped by meal slot --}}
+                        @foreach(\App\Models\Entry::MEAL_TYPES as $type)
+                            @php $group = $entries->where('meal_type', $type); @endphp
+                            @if($group->isNotEmpty())
+                                <p class="text-[11px] font-semibold uppercase tracking-wider rtl:tracking-normal text-zinc-400 dark:text-zinc-500 mt-3 mb-0.5">{{ __(ucfirst($type)) }}</p>
+                                @foreach($group as $entry)
+                                    <div wire:key="{{ $entry->id }}" class="border-t border-zinc-100 dark:border-zinc-800/70 py-3">
+                                        <x-entry-row :entry="$entry" :editing="$editingId === $entry->id" />
+                                    </div>
+                                @endforeach
+                            @endif
                         @endforeach
                     </div>
                 @endforeach

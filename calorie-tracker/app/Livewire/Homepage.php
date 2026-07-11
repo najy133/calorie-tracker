@@ -6,13 +6,14 @@ use Livewire\Component;
 use Livewire\Attributes\Rule;
 use App\Concerns\HasStreak;
 use App\Concerns\HasEntryActions;
+use App\Concerns\HasMealType;
 use App\Models\Entry;
 use App\Services\CalorieEstimator;
 use Illuminate\Support\Facades\RateLimiter;
 
 class Homepage extends Component
 {
-    use HasStreak, HasEntryActions;
+    use HasStreak, HasEntryActions, HasMealType;
 
     #[Rule('required|string|min:2|max:500')]
     public string $food = '';
@@ -45,6 +46,7 @@ class Homepage extends Component
         $this->dailyGoal     = auth()->check() ? (auth()->user()->daily_goal ?? 2000) : 2000;
         $this->todayCalories = $this->queryTodayCalories();
         $this->streak        = $this->calculateStreak();
+        $this->mealType      = $this->defaultMealType();
     }
 
     public function updatedFood(): void
@@ -116,14 +118,15 @@ class Homepage extends Component
         if ($this->calories <= 0 || blank($this->food)) return;
 
         $entry = Entry::create([
-            'user_id'  => auth()->id(),
-            'food'     => $this->food,
-            'calories' => $this->calories,
-            'protein'  => $this->protein,
-            'carbs'    => $this->carbs,
-            'fat'      => $this->fat,
+            'user_id'   => auth()->id(),
+            'food'      => $this->food,
+            'calories'  => $this->calories,
+            'protein'   => $this->protein,
+            'carbs'     => $this->carbs,
+            'fat'       => $this->fat,
             // Reused-from-manual keeps the "manual" (verified) badge; otherwise it's an AI estimate.
-            'source'   => $this->reusedManual ? 'manual' : 'ai',
+            'source'    => $this->reusedManual ? 'manual' : 'ai',
+            'meal_type' => $this->currentMealType(),
         ]);
 
         $this->lastSavedId = $entry->id;
@@ -175,13 +178,14 @@ class Homepage extends Component
         ]);
 
         $entry = Entry::create([
-            'user_id'  => auth()->id(),
-            'food'     => trim($this->manualFood) ?: __('Quick add'),
-            'calories' => $this->manualCalories,
-            'protein'  => $this->manualProtein ?? 0,
-            'carbs'    => $this->manualCarbs ?? 0,
-            'fat'      => $this->manualFat ?? 0,
-            'source'   => 'manual',
+            'user_id'   => auth()->id(),
+            'food'      => trim($this->manualFood) ?: __('Quick add'),
+            'calories'  => $this->manualCalories,
+            'protein'   => $this->manualProtein ?? 0,
+            'carbs'     => $this->manualCarbs ?? 0,
+            'fat'       => $this->manualFat ?? 0,
+            'source'    => 'manual',
+            'meal_type' => $this->currentMealType(),
         ]);
 
         $this->lastSavedId   = $entry->id;
@@ -213,7 +217,7 @@ class Homepage extends Component
             ? Entry::where('user_id', auth()->id())
                 ->whereDate('created_at', today())
                 ->orderBy('created_at', 'desc')
-                ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'source', 'created_at'])
+                ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'source', 'meal_type', 'created_at'])
             : collect();
 
         return view('livewire.homepage', compact('todayEntries'))->layout('layouts.app');

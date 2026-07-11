@@ -84,6 +84,19 @@
             @endif
         </div>
 
+        {{-- Meal slot — pre-selected by time of day, one tap to change --}}
+        <div class="flex flex-wrap items-center gap-1.5 mb-3">
+            @foreach(['breakfast' => __('Breakfast'), 'lunch' => __('Lunch'), 'dinner' => __('Dinner'), 'snack' => __('Snack')] as $type => $label)
+                <button wire:click="setMealType('{{ $type }}')"
+                        class="px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap
+                            {{ $mealType === $type
+                                ? 'bg-emerald-600 text-white'
+                                : 'text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 hover:border-emerald-400 dark:hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400' }}">
+                    {{ $label }}
+                </button>
+            @endforeach
+        </div>
+
         {{-- ── Manual entry: log calories directly ── --}}
         @if($manualMode)
             <div class="space-y-3">
@@ -235,16 +248,30 @@
         @endguest
 
         @auth
-            @forelse($todayEntries as $entry)
-                <div wire:key="{{ $entry->id }}" class="border-t border-zinc-100 dark:border-zinc-800/70 py-3 {{ $lastSavedId === $entry->id ? 'row-flash' : '' }}">
-                    <x-entry-row :entry="$entry" :editing="$editingId === $entry->id" />
-                </div>
-            @empty
+            @if($todayEntries->isEmpty())
                 <div wire:key="empty-state" class="py-14 text-center">
                     <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('No meals logged yet today.') }}</p>
                     <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{{ __('Log your first meal above to get started.') }}</p>
                 </div>
-            @endforelse
+            @else
+                {{-- Grouped into meal slots, in order --}}
+                @foreach(\App\Models\Entry::MEAL_TYPES as $type)
+                    @php $group = $todayEntries->where('meal_type', $type); @endphp
+                    @if($group->isNotEmpty())
+                        <div class="mb-6" wire:key="meal-{{ $type }}">
+                            <div class="flex items-baseline justify-between mb-1">
+                                <span class="text-xs font-semibold uppercase tracking-widest rtl:tracking-normal text-zinc-400 dark:text-zinc-500">{{ __(ucfirst($type)) }}</span>
+                                <span class="font-mono text-xs text-zinc-400 dark:text-zinc-500">{{ number_format($group->sum('calories')) }} {{ __('kcal') }}</span>
+                            </div>
+                            @foreach($group as $entry)
+                                <div wire:key="{{ $entry->id }}" class="border-t border-zinc-100 dark:border-zinc-800/70 py-3 {{ $lastSavedId === $entry->id ? 'row-flash' : '' }}">
+                                    <x-entry-row :entry="$entry" :editing="$editingId === $entry->id" />
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                @endforeach
+            @endif
 
             <x-confirm-delete-modal :id="$confirmingDeleteId" :food="$confirmingDeleteFood" />
         @endauth

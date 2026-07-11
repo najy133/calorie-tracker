@@ -378,3 +378,36 @@ it('forces a fresh AI estimate when the user overrides a remembered entry', func
         ->assertSet('calories', 1100)
         ->assertSet('reusedManual', false);
 });
+
+// ── Meal type ────────────────────────────────────────────────────────────────
+
+it('saves the selected meal type on an AI entry', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->call('setMealType', 'dinner')
+        ->set('food', 'pasta')->set('calories', 600)
+        ->call('save');
+
+    expect(Entry::where('user_id', $user->id)->first()->meal_type)->toBe('dinner');
+});
+
+it('saves the selected meal type on a manual entry', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->call('setMealType', 'snack')
+        ->set('manualCalories', 150)
+        ->call('saveManual');
+
+    expect(Entry::where('user_id', $user->id)->first()->meal_type)->toBe('snack');
+});
+
+it('ignores an invalid meal type', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->call('setMealType', 'breakfast')
+        ->call('setMealType', 'brunch') // not a real slot
+        ->assertSet('mealType', 'breakfast');
+});
