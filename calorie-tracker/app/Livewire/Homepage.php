@@ -22,6 +22,8 @@ class Homepage extends Component
     public int $carbs = 0;
     public int $fat = 0;
     public array $breakdown = [];
+    // True when the current estimate was reused from a past manual entry (not the AI)
+    public bool $reusedManual = false;
     public int $todayCalories = 0;
     public int $dailyGoal = 2000;
     public int $streak = 0;
@@ -49,13 +51,26 @@ class Homepage extends Component
     {
         // Editing the food text invalidates the current estimate — clear it so the
         // stale preview (and its Save button) can't apply to the new text.
-        $this->reset('calories', 'protein', 'carbs', 'fat', 'breakdown', 'explanation');
+        $this->reset('calories', 'protein', 'carbs', 'fat', 'breakdown', 'explanation', 'reusedManual');
         $this->resetErrorBag('food');
     }
 
     public function estimate(): void
     {
         $this->validate();
+
+        // If the user has logged this exact food manually before, reuse their
+        // verified numbers instead of asking the AI to guess again.
+        if ($remembered = $this->rememberedManualEntry()) {
+            $this->calories     = $remembered->calories;
+            $this->protein      = $remembered->protein;
+            $this->carbs        = $remembered->carbs;
+            $this->fat          = $remembered->fat;
+            $this->breakdown    = [];
+            $this->explanation  = __('Reused from a meal you logged manually before.');
+            $this->reusedManual = true;
+            return;
+        }
 
         $key = $this->estimateRateKey();
 
@@ -77,12 +92,13 @@ class Homepage extends Component
                 return;
             }
 
-            $this->calories    = $result['calories'];
-            $this->protein     = $result['protein'];
-            $this->carbs       = $result['carbs'];
-            $this->fat         = $result['fat'];
-            $this->breakdown   = $result['breakdown'];
-            $this->explanation = $result['explanation'];
+            $this->calories     = $result['calories'];
+            $this->protein      = $result['protein'];
+            $this->carbs        = $result['carbs'];
+            $this->fat          = $result['fat'];
+            $this->breakdown    = $result['breakdown'];
+            $this->explanation  = $result['explanation'];
+            $this->reusedManual = false;
         } catch (\Throwable $e) {
             $this->addError('food', __('Could not estimate calories. Please try again.'));
             \Log::error('CalorieEstimator failed', ['error' => $e->getMessage(), 'food' => $this->food]);
@@ -105,13 +121,30 @@ class Homepage extends Component
             'protein'  => $this->protein,
             'carbs'    => $this->carbs,
             'fat'      => $this->fat,
+            // Reused-from-manual keeps the "manual" (verified) badge; otherwise it's an AI estimate.
+            'source'   => $this->reusedManual ? 'manual' : 'ai',
         ]);
 
         $this->lastSavedId = $entry->id;
 
         $this->todayCalories = $this->queryTodayCalories();
         $this->streak        = $this->calculateStreak();
-        $this->reset('food', 'calories', 'protein', 'carbs', 'fat', 'breakdown', 'explanation');
+        $this->reset('food', 'calories', 'protein', 'carbs', 'fat', 'breakdown', 'explanation', 'reusedManual');
+    }
+
+    /** The user's most recent manual entry whose food name matches the current input exactly. */
+    private function rememberedManualEntry(): ?Entry
+    {
+        if (!auth()->check()) return null;
+
+        $name = mb_strtolower(trim($this->food));
+        if ($name === '') return null;
+
+        return Entry::where('user_id', auth()->id())
+            ->where('source', 'manual')
+            ->whereRaw('LOWER(TRIM(food)) = ?', [$name])
+            ->latest()
+            ->first();
     }
 
     public function toggleManual(bool $on): void
@@ -147,6 +180,7 @@ class Homepage extends Component
             'protein'  => $this->manualProtein ?? 0,
             'carbs'    => $this->manualCarbs ?? 0,
             'fat'      => $this->manualFat ?? 0,
+            'source'   => 'manual',
         ]);
 
         $this->lastSavedId   = $entry->id;
@@ -178,7 +212,7 @@ class Homepage extends Component
             ? Entry::where('user_id', auth()->id())
                 ->whereDate('created_at', today())
                 ->orderBy('created_at', 'desc')
-                ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'created_at'])
+                ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'source', 'created_at'])
             : collect();
 
         return view('livewire.homepage', compact('todayEntries'))->layout('layouts.app');

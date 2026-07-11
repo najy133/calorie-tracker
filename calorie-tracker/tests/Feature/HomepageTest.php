@@ -306,3 +306,60 @@ it('does not save a manual entry for guests', function () {
 
     expect(Entry::count())->toBe(0);
 });
+
+// ── Source tagging + reuse of manual entries ─────────────────────────────────
+
+it('tags AI-saved entries as source ai and manual ones as manual', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->set('food', 'banana')->set('calories', 90)->call('save');
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->set('manualCalories', 500)->call('saveManual');
+
+    expect(Entry::where('food', 'banana')->first()->source)->toBe('ai');
+    expect(Entry::where('source', 'manual')->count())->toBe(1);
+});
+
+it('reuses a past manual entry instead of calling the AI', function () {
+    $user = User::factory()->create();
+    Entry::create(['user_id' => $user->id, 'food' => 'Al Baik broast', 'calories' => 650, 'protein' => 35, 'carbs' => 0, 'fat' => 20, 'source' => 'manual']);
+
+    // The estimator must NOT be called when a manual match exists.
+    $this->mock(CalorieEstimator::class)->shouldNotReceive('estimate');
+
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->set('food', '  al baik broast ') // different case/spacing still matches
+        ->call('estimate')
+        ->assertSet('calories', 650)
+        ->assertSet('protein', 35)
+        ->assertSet('reusedManual', true);
+});
+
+it('saves a reused manual estimate back as source manual', function () {
+    $user = User::factory()->create();
+    Entry::create(['user_id' => $user->id, 'food' => 'kabsa', 'calories' => 900, 'protein' => 40, 'carbs' => 90, 'fat' => 30, 'source' => 'manual']);
+
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->set('food', 'kabsa')
+        ->call('estimate')
+        ->call('save');
+
+    expect(Entry::where('food', 'kabsa')->where('calories', 900)->get()->pluck('source')->all())
+        ->toBe(['manual', 'manual']);
+});
+
+it('does not reuse another user\'s manual entry', function () {
+    $other = User::factory()->create();
+    Entry::create(['user_id' => $other->id, 'food' => 'kabsa', 'calories' => 900, 'source' => 'manual']);
+
+    $me = User::factory()->create();
+    $this->mock(CalorieEstimator::class)->shouldReceive('estimate')->once()
+        ->andReturn(['not_food' => false, 'calories' => 111, 'protein' => 0, 'carbs' => 0, 'fat' => 0, 'explanation' => null, 'breakdown' => []]);
+
+    Livewire::actingAs($me)->test(Homepage::class)
+        ->set('food', 'kabsa')
+        ->call('estimate')
+        ->assertSet('calories', 111)
+        ->assertSet('reusedManual', false);
+});
