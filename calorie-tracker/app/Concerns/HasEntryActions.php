@@ -61,6 +61,7 @@ trait HasEntryActions
                     'protein'  => $result['protein'],
                     'carbs'    => $result['carbs'],
                     'fat'      => $result['fat'],
+                    'source'   => 'ai', // editing re-runs the AI, so it's an estimate now
                 ]);
 
             $this->cancelEdit();

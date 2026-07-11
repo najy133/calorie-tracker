@@ -157,7 +157,7 @@ class Dashboard extends Component
 
         $entriesByDay = $historyQuery
             ->limit(200)
-            ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'created_at'])
+            ->get(['id', 'food', 'calories', 'protein', 'carbs', 'fat', 'source', 'created_at'])
             ->groupBy(fn ($e) => $e->created_at->toDateString());
 
         // Progressive "show earlier" only applies to the unfiltered "all" view

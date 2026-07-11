@@ -32,6 +32,12 @@
             <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">{{ $entry->food }}</p>
             <div class="flex items-center gap-2.5 mt-1">
                 <span class="text-xs text-zinc-400 dark:text-zinc-500 whitespace-nowrap">{{ $entry->created_at->format('g:i') }} {{ __($entry->created_at->format('A')) }}</span>
+                @if(($entry->source ?? 'ai') === 'manual')
+                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded px-1.5 py-0.5 whitespace-nowrap" title="{{ __('You entered these calories yourself') }}">
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        {{ __('manual') }}
+                    </span>
+                @endif
                 @if($entry->protein || $entry->carbs || $entry->fat)
                     <x-macros :protein="$entry->protein" :carbs="$entry->carbs" :fat="$entry->fat" class="text-xs" />
                 @endif

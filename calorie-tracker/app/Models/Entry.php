@@ -16,6 +16,7 @@ class Entry extends Model
         'protein',
         'carbs',
         'fat',
+        'source', // 'ai' (estimated) | 'manual' (user-entered)
     ];
 
     protected $casts = [

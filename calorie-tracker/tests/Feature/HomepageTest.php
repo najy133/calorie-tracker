@@ -249,3 +249,132 @@ it('resets macros after saving', function () {
         ->assertSet('carbs', 0)
         ->assertSet('fat', 0);
 });
+
+// ── Manual entry ─────────────────────────────────────────────────────────────
+
+it('logs a manual entry with just calories', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Homepage::class)
+        ->call('toggleManual', true)
+        ->set('manualCalories', 650)
+        ->call('saveManual')
+        ->assertHasNoErrors()
+        ->assertSet('manualCalories', null);
+
+    $entry = Entry::where('user_id', $user->id)->first();
+    expect($entry->calories)->toBe(650);
+    expect($entry->food)->toBe('Quick add'); // blank name falls back to a label
+    expect($entry->protein)->toBe(0);
+});
+
+it('keeps the name and optional macros on a manual entry', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Homepage::class)
+        ->set('manualFood', 'Al Baik broast meal')
+        ->set('manualCalories', 780)
+        ->set('manualProtein', 48)
+        ->call('saveManual')
+        ->assertHasNoErrors();
+
+    $entry = Entry::where('user_id', $user->id)->first();
+    expect($entry->food)->toBe('Al Baik broast meal');
+    expect($entry->calories)->toBe(780);
+    expect($entry->protein)->toBe(48);
+    expect($entry->carbs)->toBe(0);
+});
+
+it('requires calories for a manual entry', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)
+        ->test(Homepage::class)
+        ->set('manualFood', 'mystery meal')
+        ->call('saveManual')
+        ->assertHasErrors(['manualCalories' => 'required']);
+
+    expect(Entry::where('user_id', $user->id)->count())->toBe(0);
+});
+
+it('does not save a manual entry for guests', function () {
+    Livewire::test(Homepage::class)
+        ->set('manualCalories', 500)
+        ->call('saveManual');
+
+    expect(Entry::count())->toBe(0);
+});
+
+// ── Source tagging + reuse of manual entries ─────────────────────────────────
+
+it('tags AI-saved entries as source ai and manual ones as manual', function () {
+    $user = User::factory()->create();
+
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->set('food', 'banana')->set('calories', 90)->call('save');
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->set('manualCalories', 500)->call('saveManual');
+
+    expect(Entry::where('food', 'banana')->first()->source)->toBe('ai');
+    expect(Entry::where('source', 'manual')->count())->toBe(1);
+});
+
+it('reuses a past manual entry instead of calling the AI', function () {
+    $user = User::factory()->create();
+    Entry::create(['user_id' => $user->id, 'food' => 'Al Baik broast', 'calories' => 650, 'protein' => 35, 'carbs' => 0, 'fat' => 20, 'source' => 'manual']);
+
+    // The estimator must NOT be called when a manual match exists.
+    $this->mock(CalorieEstimator::class)->shouldNotReceive('estimate');
+
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->set('food', '  al baik broast ') // different case/spacing still matches
+        ->call('estimate')
+        ->assertSet('calories', 650)
+        ->assertSet('protein', 35)
+        ->assertSet('reusedManual', true);
+});
+
+it('saves a reused manual estimate back as source manual', function () {
+    $user = User::factory()->create();
+    Entry::create(['user_id' => $user->id, 'food' => 'kabsa', 'calories' => 900, 'protein' => 40, 'carbs' => 90, 'fat' => 30, 'source' => 'manual']);
+
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->set('food', 'kabsa')
+        ->call('estimate')
+        ->call('save');
+
+    expect(Entry::where('food', 'kabsa')->where('calories', 900)->get()->pluck('source')->all())
+        ->toBe(['manual', 'manual']);
+});
+
+it('does not reuse another user\'s manual entry', function () {
+    $other = User::factory()->create();
+    Entry::create(['user_id' => $other->id, 'food' => 'kabsa', 'calories' => 900, 'source' => 'manual']);
+
+    $me = User::factory()->create();
+    $this->mock(CalorieEstimator::class)->shouldReceive('estimate')->once()
+        ->andReturn(['not_food' => false, 'calories' => 111, 'protein' => 0, 'carbs' => 0, 'fat' => 0, 'explanation' => null, 'breakdown' => []]);
+
+    Livewire::actingAs($me)->test(Homepage::class)
+        ->set('food', 'kabsa')
+        ->call('estimate')
+        ->assertSet('calories', 111)
+        ->assertSet('reusedManual', false);
+});
+
+it('forces a fresh AI estimate when the user overrides a remembered entry', function () {
+    $user = User::factory()->create();
+    Entry::create(['user_id' => $user->id, 'food' => 'kabsa', 'calories' => 700, 'protein' => 30, 'carbs' => 70, 'fat' => 20, 'source' => 'manual']);
+
+    // With forceFresh the estimator IS called, and the remembered value is ignored.
+    $this->mock(CalorieEstimator::class)->shouldReceive('estimate')->once()
+        ->andReturn(['not_food' => false, 'calories' => 1100, 'protein' => 55, 'carbs' => 120, 'fat' => 35, 'explanation' => 'Large plate.', 'breakdown' => []]);
+
+    Livewire::actingAs($user)->test(Homepage::class)
+        ->set('food', 'kabsa')
+        ->call('estimate', true) // "Estimate with AI instead"
+        ->assertSet('calories', 1100)
+        ->assertSet('reusedManual', false);
+});
