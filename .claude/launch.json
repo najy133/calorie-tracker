@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "calorie-tracker",
+      "runtimeExecutable": "php",
+      "runtimeArgs": ["-r", "chdir('/Users/nagyelsokkary/Desktop/calorie-tracker/calorie-tracker'); require 'artisan';", "--", "serve", "--port=8000"],
+      "port": 8000
+    }
+  ]
+}
