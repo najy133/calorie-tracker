@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\AiBudget;
 use Prism\Prism\Facades\Prism;
 use Prism\Prism\Enums\Provider;
 use RuntimeException;
@@ -14,6 +15,8 @@ class CalorieEstimator
      */
     public function estimate(string $food, string $locale = 'en'): array
     {
+        AiBudget::guard();
+
         $response = Prism::text()
             ->using(Provider::OpenAI, 'gpt-4o-mini')
             ->withSystemPrompt('You are a nutrition expert. Always respond with valid JSON only — no markdown, no code fences, no extra text.')

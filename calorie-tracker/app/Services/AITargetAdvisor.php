@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\AiBudget;
 use Prism\Prism\Facades\Prism;
 use Prism\Prism\Enums\Provider;
 use RuntimeException;
@@ -29,6 +30,8 @@ class AITargetAdvisor
         string  $locale = 'en',
     ): ?array {
         try {
+            AiBudget::guard();
+
             $response = Prism::text()
                 ->using(Provider::OpenAI, 'gpt-4o-mini')
                 ->withSystemPrompt('You are a registered dietitian and sports nutritionist. Always respond with valid JSON only — no markdown, no code fences, no extra text.')
